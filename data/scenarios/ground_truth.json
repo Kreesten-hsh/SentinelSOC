@@ -53,7 +53,7 @@
       ],
       "key_iocs": {
         "c2_ips": ["185.141.27.88"],
-        "file_hashes": ["d41d8cd98f00b204e9800998ecf8427e2b3f68c1a8e5d7c9"],
+        "file_hashes": ["d41d8cd98f00b204e9800998ecf8427e2b3f68c1a8e5d7c933b9f4e2460b13d6"],
         "victim_hosts": ["ws-bobsmith"],
         "victim_users": ["WAYNE\\bob.smith"]
       },

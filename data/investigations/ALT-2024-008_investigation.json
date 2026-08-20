@@ -1,0 +1,710 @@
+{
+  "alert_id": "ALT-2024-008",
+  "iocs": {
+    "alert_id": "ALT-2024-008",
+    "iocs": [
+      {
+        "ioc_type": "ipv4",
+        "value": "198.71.247.91",
+        "context": "alert_ALT-2024-008"
+      },
+      {
+        "ioc_type": "ipv4",
+        "value": "192.168.250.70",
+        "context": "alert_ALT-2024-008"
+      }
+    ],
+    "extraction_timestamp": "2026-08-20T21:26:26.714341Z"
+  },
+  "steps": [
+    {
+      "step_number": 1,
+      "action": "Extract Indicators of Compromise (IOCs)",
+      "reasoning": "Extract all atomic observables (IPs, domains, hashes, users, hosts) from raw alert payload",
+      "tool_used": "extract_iocs",
+      "query": "content={\"src_ip\": \"198.71.247.91\", \"dest_ip\": \"192.168.250.70\", \"dest_port\": 443, \"even...",
+      "result_summary": "Extracted 2 IOCs: 2 IPs, 0 hashes, 0 users, 0 domains.",
+      "events_found": 2,
+      "timestamp": "2026-08-20T21:26:26.714365Z"
+    },
+    {
+      "step_number": 2,
+      "action": "Query network and perimeter telemetry for source IP '198.71.247.91'",
+      "reasoning": "Determine whether inbound/outbound connection volume, targeted ports, or IDS signatures indicate malicious probing",
+      "tool_used": "query_logs",
+      "query": "src_ip=198.71.247.91, scenario_id=scenario_08_credential_stuffing",
+      "result_summary": "Identified 29 matching network/IDS telemetry events.",
+      "events_found": 29,
+      "timestamp": "2026-08-20T21:26:26.716367Z"
+    },
+    {
+      "step_number": 3,
+      "action": "Query authentication and endpoint activity for user 'None' and host 'None'",
+      "reasoning": "Assess whether user account suffered brute forcing, unauthorized privilege escalation, or executed suspicious processes",
+      "tool_used": "query_logs",
+      "query": "user=None, host=None, scenario_id=scenario_08_credential_stuffing",
+      "result_summary": "Retrieved 29 authentication/endpoint events.",
+      "events_found": 29,
+      "timestamp": "2026-08-20T21:26:26.718742Z"
+    },
+    {
+      "step_number": 4,
+      "action": "Cross-source temporal correlation and attack pattern reconstruction",
+      "reasoning": "Synthesize event timeline across perimeter, authentication, and endpoint telemetry to identify multi-stage attack patterns",
+      "tool_used": "correlate_events",
+      "query": "scenario_id=scenario_08_credential_stuffing, target_ip=198.71.247.91",
+      "result_summary": "Correlated 29 events. Detected 1 attack pattern(s): ['brute_force_followed_by_success'].",
+      "events_found": 1,
+      "timestamp": "2026-08-20T21:26:26.720108Z"
+    },
+    {
+      "step_number": 5,
+      "action": "Query Threat Intelligence feeds for all extracted external IOCs",
+      "reasoning": "Validate external indicators against known C2 servers, vulnerability scanners, and malicious hash feeds",
+      "tool_used": "lookup_threat_intel",
+      "query": "IOCs: ['198.71.247.91', '192.168.250.70']",
+      "result_summary": "Evaluated 2 indicators. Malicious tags found: [['credential-stuffing', 'brute-force', 'webmail-attack']].",
+      "events_found": 1,
+      "timestamp": "2026-08-20T21:26:26.720434Z"
+    },
+    {
+      "step_number": 6,
+      "action": "Synthesize final investigation verdict and containment action",
+      "reasoning": "Weigh threat intel confidence, correlation patterns, and administrative context to assign verdict",
+      "tool_used": "investigation_synthesis",
+      "query": "Analytical evaluation",
+      "result_summary": "Verdict: TRUE_POSITIVE | Recommended Action: CONTAIN",
+      "events_found": 1,
+      "timestamp": "2026-08-20T21:26:26.720482Z"
+    }
+  ],
+  "log_events": [
+    {
+      "id": "5ae15969-4709-466a-9838-202a5d228c43",
+      "timestamp": "2024-08-17T07:00:00",
+      "source_type": "webserver",
+      "src_ip": "198.71.247.91",
+      "dest_ip": "192.168.250.70",
+      "src_port": null,
+      "dest_port": 443,
+      "user": "",
+      "host": "webmail.wayne-enterprises.com",
+      "action": "POST",
+      "raw_event": "198.71.247.91 - - \"POST /owa/auth.owa HTTP/1.1\" 401 0",
+      "metadata": {
+        "http_method": "POST",
+        "uri": "/owa/auth.owa",
+        "status_code": 401,
+        "form_data": "username=bruce.wayne&password=leaked_pass_0"
+      },
+      "scenario_id": "scenario_08_credential_stuffing"
+    },
+    {
+      "id": "7b85af86-ba7d-4b02-bc59-3c1aa2fa9cae",
+      "timestamp": "2024-08-17T07:00:00",
+      "source_type": "auth",
+      "src_ip": "198.71.247.91",
+      "dest_ip": "192.168.250.70",
+      "src_port": null,
+      "dest_port": null,
+      "user": "WAYNE\\bruce.wayne",
+      "host": "webmail.wayne-enterprises.com",
+      "action": "login_failed",
+      "raw_event": "OWA authentication failed: User WAYNE\\bruce.wayne from 198.71.247.91",
+      "metadata": {
+        "event_id": 4625,
+        "logon_type": 8,
+        "failure_reason": "bad_password",
+        "service": "OWA"
+      },
+      "scenario_id": "scenario_08_credential_stuffing"
+    },
+    {
+      "id": "280d17dd-9a2c-44b8-85f6-484af338251a",
+      "timestamp": "2024-08-17T07:00:00",
+      "source_type": "firewall",
+      "src_ip": "198.71.247.91",
+      "dest_ip": "192.168.250.70",
+      "src_port": 60000,
+      "dest_port": 443,
+      "user": "",
+      "host": "fw-01",
+      "action": "allow",
+      "raw_event": "id=firewall action=allow srcip=198.71.247.91 dstip=192.168.250.70 dstport=443 sessions=28",
+      "metadata": {
+        "protocol": "tcp",
+        "total_sessions": 28,
+        "bytes_sent": 42000,
+        "bytes_received": 28000,
+        "session_duration_avg": 3
+      },
+      "scenario_id": "scenario_08_credential_stuffing"
+    },
+    {
+      "id": "7eaea163-7f92-4b8f-a171-7214ae8c4474",
+      "timestamp": "2024-08-17T07:00:05",
+      "source_type": "webserver",
+      "src_ip": "198.71.247.91",
+      "dest_ip": "192.168.250.70",
+      "src_port": null,
+      "dest_port": 443,
+      "user": "",
+      "host": "webmail.wayne-enterprises.com",
+      "action": "POST",
+      "raw_event": "198.71.247.91 - - \"POST /owa/auth.owa HTTP/1.1\" 401 0",
+      "metadata": {
+        "http_method": "POST",
+        "uri": "/owa/auth.owa",
+        "status_code": 401,
+        "form_data": "username=lucius.fox&password=leaked_pass_1"
+      },
+      "scenario_id": "scenario_08_credential_stuffing"
+    },
+    {
+      "id": "d197a65b-a70a-421f-b6e2-e7fdf5d132d4",
+      "timestamp": "2024-08-17T07:00:05",
+      "source_type": "auth",
+      "src_ip": "198.71.247.91",
+      "dest_ip": "192.168.250.70",
+      "src_port": null,
+      "dest_port": null,
+      "user": "WAYNE\\lucius.fox",
+      "host": "webmail.wayne-enterprises.com",
+      "action": "login_failed",
+      "raw_event": "OWA authentication failed: User WAYNE\\lucius.fox from 198.71.247.91",
+      "metadata": {
+        "event_id": 4625,
+        "logon_type": 8,
+        "failure_reason": "bad_password",
+        "service": "OWA"
+      },
+      "scenario_id": "scenario_08_credential_stuffing"
+    },
+    {
+      "id": "01f7faab-f59d-484d-ae8f-8eca6cb64c50",
+      "timestamp": "2024-08-17T07:00:10",
+      "source_type": "webserver",
+      "src_ip": "198.71.247.91",
+      "dest_ip": "192.168.250.70",
+      "src_port": null,
+      "dest_port": 443,
+      "user": "",
+      "host": "webmail.wayne-enterprises.com",
+      "action": "POST",
+      "raw_event": "198.71.247.91 - - \"POST /owa/auth.owa HTTP/1.1\" 401 0",
+      "metadata": {
+        "http_method": "POST",
+        "uri": "/owa/auth.owa",
+        "status_code": 401,
+        "form_data": "username=alfred.pennyworth&password=leaked_pass_2"
+      },
+      "scenario_id": "scenario_08_credential_stuffing"
+    },
+    {
+      "id": "e8320f50-b00b-4c54-bf5b-b21eca039811",
+      "timestamp": "2024-08-17T07:00:10",
+      "source_type": "auth",
+      "src_ip": "198.71.247.91",
+      "dest_ip": "192.168.250.70",
+      "src_port": null,
+      "dest_port": null,
+      "user": "WAYNE\\alfred.pennyworth",
+      "host": "webmail.wayne-enterprises.com",
+      "action": "login_failed",
+      "raw_event": "OWA authentication failed: User WAYNE\\alfred.pennyworth from 198.71.247.91",
+      "metadata": {
+        "event_id": 4625,
+        "logon_type": 8,
+        "failure_reason": "bad_password",
+        "service": "OWA"
+      },
+      "scenario_id": "scenario_08_credential_stuffing"
+    },
+    {
+      "id": "74f55635-e528-4a76-b300-df7a4602eb9c",
+      "timestamp": "2024-08-17T07:00:15",
+      "source_type": "webserver",
+      "src_ip": "198.71.247.91",
+      "dest_ip": "192.168.250.70",
+      "src_port": null,
+      "dest_port": 443,
+      "user": "",
+      "host": "webmail.wayne-enterprises.com",
+      "action": "POST",
+      "raw_event": "198.71.247.91 - - \"POST /owa/auth.owa HTTP/1.1\" 401 0",
+      "metadata": {
+        "http_method": "POST",
+        "uri": "/owa/auth.owa",
+        "status_code": 401,
+        "form_data": "username=selina.kyle&password=leaked_pass_3"
+      },
+      "scenario_id": "scenario_08_credential_stuffing"
+    },
+    {
+      "id": "95633115-fe77-48bf-a028-b5bee879cf6d",
+      "timestamp": "2024-08-17T07:00:15",
+      "source_type": "auth",
+      "src_ip": "198.71.247.91",
+      "dest_ip": "192.168.250.70",
+      "src_port": null,
+      "dest_port": null,
+      "user": "WAYNE\\selina.kyle",
+      "host": "webmail.wayne-enterprises.com",
+      "action": "login_failed",
+      "raw_event": "OWA authentication failed: User WAYNE\\selina.kyle from 198.71.247.91",
+      "metadata": {
+        "event_id": 4625,
+        "logon_type": 8,
+        "failure_reason": "bad_password",
+        "service": "OWA"
+      },
+      "scenario_id": "scenario_08_credential_stuffing"
+    },
+    {
+      "id": "4672c69b-5afa-4917-a38c-576a697e9d0b",
+      "timestamp": "2024-08-17T07:00:20",
+      "source_type": "webserver",
+      "src_ip": "198.71.247.91",
+      "dest_ip": "192.168.250.70",
+      "src_port": null,
+      "dest_port": 443,
+      "user": "",
+      "host": "webmail.wayne-enterprises.com",
+      "action": "POST",
+      "raw_event": "198.71.247.91 - - \"POST /owa/auth.owa HTTP/1.1\" 401 0",
+      "metadata": {
+        "http_method": "POST",
+        "uri": "/owa/auth.owa",
+        "status_code": 401,
+        "form_data": "username=harvey.dent&password=leaked_pass_4"
+      },
+      "scenario_id": "scenario_08_credential_stuffing"
+    },
+    {
+      "id": "6934780c-2e8f-428b-b399-02bd2d4f97b1",
+      "timestamp": "2024-08-17T07:00:20",
+      "source_type": "auth",
+      "src_ip": "198.71.247.91",
+      "dest_ip": "192.168.250.70",
+      "src_port": null,
+      "dest_port": null,
+      "user": "WAYNE\\harvey.dent",
+      "host": "webmail.wayne-enterprises.com",
+      "action": "login_failed",
+      "raw_event": "OWA authentication failed: User WAYNE\\harvey.dent from 198.71.247.91",
+      "metadata": {
+        "event_id": 4625,
+        "logon_type": 8,
+        "failure_reason": "bad_password",
+        "service": "OWA"
+      },
+      "scenario_id": "scenario_08_credential_stuffing"
+    },
+    {
+      "id": "c2d64d29-935d-4428-9718-a2b863a38c3e",
+      "timestamp": "2024-08-17T07:00:25",
+      "source_type": "webserver",
+      "src_ip": "198.71.247.91",
+      "dest_ip": "192.168.250.70",
+      "src_port": null,
+      "dest_port": 443,
+      "user": "",
+      "host": "webmail.wayne-enterprises.com",
+      "action": "POST",
+      "raw_event": "198.71.247.91 - - \"POST /owa/auth.owa HTTP/1.1\" 401 0",
+      "metadata": {
+        "http_method": "POST",
+        "uri": "/owa/auth.owa",
+        "status_code": 401,
+        "form_data": "username=jim.gordon&password=leaked_pass_5"
+      },
+      "scenario_id": "scenario_08_credential_stuffing"
+    },
+    {
+      "id": "4385bd7d-3f28-45f6-8bf7-b96f4a1aaeb5",
+      "timestamp": "2024-08-17T07:00:25",
+      "source_type": "auth",
+      "src_ip": "198.71.247.91",
+      "dest_ip": "192.168.250.70",
+      "src_port": null,
+      "dest_port": null,
+      "user": "WAYNE\\jim.gordon",
+      "host": "webmail.wayne-enterprises.com",
+      "action": "login_failed",
+      "raw_event": "OWA authentication failed: User WAYNE\\jim.gordon from 198.71.247.91",
+      "metadata": {
+        "event_id": 4625,
+        "logon_type": 8,
+        "failure_reason": "bad_password",
+        "service": "OWA"
+      },
+      "scenario_id": "scenario_08_credential_stuffing"
+    },
+    {
+      "id": "cd888e7b-e85d-4492-8bf0-4385da0e01e2",
+      "timestamp": "2024-08-17T07:00:30",
+      "source_type": "webserver",
+      "src_ip": "198.71.247.91",
+      "dest_ip": "192.168.250.70",
+      "src_port": null,
+      "dest_port": 443,
+      "user": "",
+      "host": "webmail.wayne-enterprises.com",
+      "action": "POST",
+      "raw_event": "198.71.247.91 - - \"POST /owa/auth.owa HTTP/1.1\" 401 0",
+      "metadata": {
+        "http_method": "POST",
+        "uri": "/owa/auth.owa",
+        "status_code": 401,
+        "form_data": "username=barbara.gordon&password=leaked_pass_6"
+      },
+      "scenario_id": "scenario_08_credential_stuffing"
+    },
+    {
+      "id": "7ccf9dd4-6c9d-455b-b72b-5a7c7aa64ca6",
+      "timestamp": "2024-08-17T07:00:30",
+      "source_type": "auth",
+      "src_ip": "198.71.247.91",
+      "dest_ip": "192.168.250.70",
+      "src_port": null,
+      "dest_port": null,
+      "user": "WAYNE\\barbara.gordon",
+      "host": "webmail.wayne-enterprises.com",
+      "action": "login_failed",
+      "raw_event": "OWA authentication failed: User WAYNE\\barbara.gordon from 198.71.247.91",
+      "metadata": {
+        "event_id": 4625,
+        "logon_type": 8,
+        "failure_reason": "bad_password",
+        "service": "OWA"
+      },
+      "scenario_id": "scenario_08_credential_stuffing"
+    },
+    {
+      "id": "c5492c80-5d18-480f-bf15-d751a3d38c61",
+      "timestamp": "2024-08-17T07:00:35",
+      "source_type": "webserver",
+      "src_ip": "198.71.247.91",
+      "dest_ip": "192.168.250.70",
+      "src_port": null,
+      "dest_port": 443,
+      "user": "",
+      "host": "webmail.wayne-enterprises.com",
+      "action": "POST",
+      "raw_event": "198.71.247.91 - - \"POST /owa/auth.owa HTTP/1.1\" 401 0",
+      "metadata": {
+        "http_method": "POST",
+        "uri": "/owa/auth.owa",
+        "status_code": 401,
+        "form_data": "username=dick.grayson&password=leaked_pass_7"
+      },
+      "scenario_id": "scenario_08_credential_stuffing"
+    },
+    {
+      "id": "da7287ca-6b10-4005-9886-9c2a56bac4af",
+      "timestamp": "2024-08-17T07:00:35",
+      "source_type": "auth",
+      "src_ip": "198.71.247.91",
+      "dest_ip": "192.168.250.70",
+      "src_port": null,
+      "dest_port": null,
+      "user": "WAYNE\\dick.grayson",
+      "host": "webmail.wayne-enterprises.com",
+      "action": "login_failed",
+      "raw_event": "OWA authentication failed: User WAYNE\\dick.grayson from 198.71.247.91",
+      "metadata": {
+        "event_id": 4625,
+        "logon_type": 8,
+        "failure_reason": "bad_password",
+        "service": "OWA"
+      },
+      "scenario_id": "scenario_08_credential_stuffing"
+    },
+    {
+      "id": "8f0ab60d-d607-4186-8899-5a5bf05106d1",
+      "timestamp": "2024-08-17T07:00:40",
+      "source_type": "webserver",
+      "src_ip": "198.71.247.91",
+      "dest_ip": "192.168.250.70",
+      "src_port": null,
+      "dest_port": 443,
+      "user": "",
+      "host": "webmail.wayne-enterprises.com",
+      "action": "POST",
+      "raw_event": "198.71.247.91 - - \"POST /owa/auth.owa HTTP/1.1\" 401 0",
+      "metadata": {
+        "http_method": "POST",
+        "uri": "/owa/auth.owa",
+        "status_code": 401,
+        "form_data": "username=tim.drake&password=leaked_pass_8"
+      },
+      "scenario_id": "scenario_08_credential_stuffing"
+    },
+    {
+      "id": "121c1fe7-7e22-462d-9621-27f3507346fb",
+      "timestamp": "2024-08-17T07:00:40",
+      "source_type": "auth",
+      "src_ip": "198.71.247.91",
+      "dest_ip": "192.168.250.70",
+      "src_port": null,
+      "dest_port": null,
+      "user": "WAYNE\\tim.drake",
+      "host": "webmail.wayne-enterprises.com",
+      "action": "login_failed",
+      "raw_event": "OWA authentication failed: User WAYNE\\tim.drake from 198.71.247.91",
+      "metadata": {
+        "event_id": 4625,
+        "logon_type": 8,
+        "failure_reason": "bad_password",
+        "service": "OWA"
+      },
+      "scenario_id": "scenario_08_credential_stuffing"
+    },
+    {
+      "id": "311fc885-56ae-4f7a-b8c0-dac6ee278a84",
+      "timestamp": "2024-08-17T07:00:45",
+      "source_type": "webserver",
+      "src_ip": "198.71.247.91",
+      "dest_ip": "192.168.250.70",
+      "src_port": null,
+      "dest_port": 443,
+      "user": "",
+      "host": "webmail.wayne-enterprises.com",
+      "action": "POST",
+      "raw_event": "198.71.247.91 - - \"POST /owa/auth.owa HTTP/1.1\" 401 0",
+      "metadata": {
+        "http_method": "POST",
+        "uri": "/owa/auth.owa",
+        "status_code": 401,
+        "form_data": "username=jason.todd&password=leaked_pass_9"
+      },
+      "scenario_id": "scenario_08_credential_stuffing"
+    },
+    {
+      "id": "e311f2ac-9324-4332-8e80-699049a48003",
+      "timestamp": "2024-08-17T07:00:45",
+      "source_type": "auth",
+      "src_ip": "198.71.247.91",
+      "dest_ip": "192.168.250.70",
+      "src_port": null,
+      "dest_port": null,
+      "user": "WAYNE\\jason.todd",
+      "host": "webmail.wayne-enterprises.com",
+      "action": "login_failed",
+      "raw_event": "OWA authentication failed: User WAYNE\\jason.todd from 198.71.247.91",
+      "metadata": {
+        "event_id": 4625,
+        "logon_type": 8,
+        "failure_reason": "bad_password",
+        "service": "OWA"
+      },
+      "scenario_id": "scenario_08_credential_stuffing"
+    },
+    {
+      "id": "33d98fc2-0c84-4ea4-a195-4cb29c94202b",
+      "timestamp": "2024-08-17T07:00:50",
+      "source_type": "webserver",
+      "src_ip": "198.71.247.91",
+      "dest_ip": "192.168.250.70",
+      "src_port": null,
+      "dest_port": 443,
+      "user": "",
+      "host": "webmail.wayne-enterprises.com",
+      "action": "POST",
+      "raw_event": "198.71.247.91 - - \"POST /owa/auth.owa HTTP/1.1\" 401 0",
+      "metadata": {
+        "http_method": "POST",
+        "uri": "/owa/auth.owa",
+        "status_code": 401,
+        "form_data": "username=damian.wayne&password=leaked_pass_10"
+      },
+      "scenario_id": "scenario_08_credential_stuffing"
+    },
+    {
+      "id": "ea559820-fb94-43e5-abc3-629a1f0e5e8e",
+      "timestamp": "2024-08-17T07:00:50",
+      "source_type": "auth",
+      "src_ip": "198.71.247.91",
+      "dest_ip": "192.168.250.70",
+      "src_port": null,
+      "dest_port": null,
+      "user": "WAYNE\\damian.wayne",
+      "host": "webmail.wayne-enterprises.com",
+      "action": "login_failed",
+      "raw_event": "OWA authentication failed: User WAYNE\\damian.wayne from 198.71.247.91",
+      "metadata": {
+        "event_id": 4625,
+        "logon_type": 8,
+        "failure_reason": "bad_password",
+        "service": "OWA"
+      },
+      "scenario_id": "scenario_08_credential_stuffing"
+    },
+    {
+      "id": "5e8626c4-ed46-4c6a-b010-75889f1dc32c",
+      "timestamp": "2024-08-17T07:00:55",
+      "source_type": "webserver",
+      "src_ip": "198.71.247.91",
+      "dest_ip": "192.168.250.70",
+      "src_port": null,
+      "dest_port": 443,
+      "user": "",
+      "host": "webmail.wayne-enterprises.com",
+      "action": "POST",
+      "raw_event": "198.71.247.91 - - \"POST /owa/auth.owa HTTP/1.1\" 401 0",
+      "metadata": {
+        "http_method": "POST",
+        "uri": "/owa/auth.owa",
+        "status_code": 401,
+        "form_data": "username=kate.kane&password=leaked_pass_11"
+      },
+      "scenario_id": "scenario_08_credential_stuffing"
+    },
+    {
+      "id": "9b080efb-0f0a-4dd9-9003-4d7e8e73a0d1",
+      "timestamp": "2024-08-17T07:00:55",
+      "source_type": "auth",
+      "src_ip": "198.71.247.91",
+      "dest_ip": "192.168.250.70",
+      "src_port": null,
+      "dest_port": null,
+      "user": "WAYNE\\kate.kane",
+      "host": "webmail.wayne-enterprises.com",
+      "action": "login_failed",
+      "raw_event": "OWA authentication failed: User WAYNE\\kate.kane from 198.71.247.91",
+      "metadata": {
+        "event_id": 4625,
+        "logon_type": 8,
+        "failure_reason": "bad_password",
+        "service": "OWA"
+      },
+      "scenario_id": "scenario_08_credential_stuffing"
+    },
+    {
+      "id": "7b57069e-08fa-435a-a813-ee3d4678197e",
+      "timestamp": "2024-08-17T07:01:00",
+      "source_type": "auth",
+      "src_ip": "198.71.247.91",
+      "dest_ip": "192.168.250.70",
+      "src_port": null,
+      "dest_port": null,
+      "user": "WAYNE\\lucius.fox",
+      "host": "webmail.wayne-enterprises.com",
+      "action": "login_success",
+      "raw_event": "OWA authentication successful: User WAYNE\\lucius.fox from 198.71.247.91",
+      "metadata": {
+        "event_id": 4624,
+        "logon_type": 8,
+        "service": "OWA"
+      },
+      "scenario_id": "scenario_08_credential_stuffing"
+    },
+    {
+      "id": "8a49d8e5-656c-48dc-bfe5-7b2d37fa52f6",
+      "timestamp": "2024-08-17T07:01:05",
+      "source_type": "webserver",
+      "src_ip": "198.71.247.91",
+      "dest_ip": "192.168.250.70",
+      "src_port": null,
+      "dest_port": 443,
+      "user": "",
+      "host": "webmail.wayne-enterprises.com",
+      "action": "GET",
+      "raw_event": "198.71.247.91 - lucius.fox \"GET /owa/inbox HTTP/1.1\" 200 34521",
+      "metadata": {
+        "http_method": "GET",
+        "uri": "/owa/inbox",
+        "status_code": 200
+      },
+      "scenario_id": "scenario_08_credential_stuffing"
+    },
+    {
+      "id": "b45ef2f8-b996-4b25-a1b4-97a970c7c3bd",
+      "timestamp": "2024-08-17T07:01:15",
+      "source_type": "auth",
+      "src_ip": "198.71.247.91",
+      "dest_ip": "192.168.250.70",
+      "src_port": null,
+      "dest_port": null,
+      "user": "WAYNE\\barbara.gordon",
+      "host": "webmail.wayne-enterprises.com",
+      "action": "login_success",
+      "raw_event": "OWA authentication successful: User WAYNE\\barbara.gordon from 198.71.247.91",
+      "metadata": {
+        "event_id": 4624,
+        "logon_type": 8,
+        "service": "OWA"
+      },
+      "scenario_id": "scenario_08_credential_stuffing"
+    },
+    {
+      "id": "56c7f9ae-43ea-4787-9a40-352b0845c5c9",
+      "timestamp": "2024-08-17T07:01:20",
+      "source_type": "webserver",
+      "src_ip": "198.71.247.91",
+      "dest_ip": "192.168.250.70",
+      "src_port": null,
+      "dest_port": 443,
+      "user": "",
+      "host": "webmail.wayne-enterprises.com",
+      "action": "GET",
+      "raw_event": "198.71.247.91 - barbara.gordon \"GET /owa/inbox HTTP/1.1\" 200 34521",
+      "metadata": {
+        "http_method": "GET",
+        "uri": "/owa/inbox",
+        "status_code": 200
+      },
+      "scenario_id": "scenario_08_credential_stuffing"
+    }
+  ],
+  "correlations": [
+    {
+      "description": "12 failed authentications followed by successful login for user 'WAYNE\\lucius.fox' from 198.71.247.91",
+      "events": [],
+      "pattern": "brute_force_followed_by_success",
+      "confidence": 0.7
+    }
+  ],
+  "threat_intel": [
+    {
+      "ioc_value": "198.71.247.91",
+      "ioc_type": "ipv4",
+      "reputation": "malicious",
+      "confidence": 0.92,
+      "tags": [
+        "credential-stuffing",
+        "brute-force",
+        "webmail-attack"
+      ],
+      "source": "local_known_iocs",
+      "raw_response": {
+        "reputation": "malicious",
+        "confidence": 0.92,
+        "tags": [
+          "credential-stuffing",
+          "brute-force",
+          "webmail-attack"
+        ],
+        "first_seen": "2024-08-17",
+        "description": "Source de credential stuffing contre OWA (Outlook Web Access)",
+        "references": [
+          "Credential stuffing campaign"
+        ]
+      }
+    },
+    {
+      "ioc_value": "192.168.250.70",
+      "ioc_type": "ipv4",
+      "reputation": "unknown",
+      "confidence": 0.0,
+      "tags": [],
+      "source": "none",
+      "raw_response": {}
+    }
+  ],
+  "severity_score": null,
+  "verdict": "true_positive",
+  "recommended_action": "contain",
+  "started_at": "2026-08-20T21:26:26.713686Z",
+  "completed_at": "2026-08-20T21:26:26.720539Z"
+}

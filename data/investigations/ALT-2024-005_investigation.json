@@ -1,0 +1,675 @@
+{
+  "alert_id": "ALT-2024-005",
+  "iocs": {
+    "alert_id": "ALT-2024-005",
+    "iocs": [
+      {
+        "ioc_type": "ipv4",
+        "value": "10.0.0.88",
+        "context": "alert_ALT-2024-005"
+      },
+      {
+        "ioc_type": "ipv4",
+        "value": "192.168.250.0",
+        "context": "alert_ALT-2024-005"
+      }
+    ],
+    "extraction_timestamp": "2026-08-20T21:26:26.695118Z"
+  },
+  "steps": [
+    {
+      "step_number": 1,
+      "action": "Extract Indicators of Compromise (IOCs)",
+      "reasoning": "Extract all atomic observables (IPs, domains, hashes, users, hosts) from raw alert payload",
+      "tool_used": "extract_iocs",
+      "query": "content={\"src_ip\": \"10.0.0.88\", \"dest_network\": \"192.168.250.0/24\", \"signature\": \"ET SCA...",
+      "result_summary": "Extracted 2 IOCs: 2 IPs, 0 hashes, 0 users, 0 domains.",
+      "events_found": 2,
+      "timestamp": "2026-08-20T21:26:26.695141Z"
+    },
+    {
+      "step_number": 2,
+      "action": "Query network and perimeter telemetry for source IP '10.0.0.88'",
+      "reasoning": "Determine whether inbound/outbound connection volume, targeted ports, or IDS signatures indicate malicious probing",
+      "tool_used": "query_logs",
+      "query": "src_ip=10.0.0.88, scenario_id=scenario_05_reconnaissance",
+      "result_summary": "Identified 29 matching network/IDS telemetry events.",
+      "events_found": 29,
+      "timestamp": "2026-08-20T21:26:26.697337Z"
+    },
+    {
+      "step_number": 3,
+      "action": "Query authentication and endpoint activity for user 'None' and host 'None'",
+      "reasoning": "Assess whether user account suffered brute forcing, unauthorized privilege escalation, or executed suspicious processes",
+      "tool_used": "query_logs",
+      "query": "user=None, host=None, scenario_id=scenario_05_reconnaissance",
+      "result_summary": "Retrieved 29 authentication/endpoint events.",
+      "events_found": 29,
+      "timestamp": "2026-08-20T21:26:26.699567Z"
+    },
+    {
+      "step_number": 4,
+      "action": "Cross-source temporal correlation and attack pattern reconstruction",
+      "reasoning": "Synthesize event timeline across perimeter, authentication, and endpoint telemetry to identify multi-stage attack patterns",
+      "tool_used": "correlate_events",
+      "query": "scenario_id=scenario_05_reconnaissance, target_ip=10.0.0.88",
+      "result_summary": "Correlated 29 events. Detected 0 attack pattern(s): [].",
+      "events_found": 0,
+      "timestamp": "2026-08-20T21:26:26.700813Z"
+    },
+    {
+      "step_number": 5,
+      "action": "Query Threat Intelligence feeds for all extracted external IOCs",
+      "reasoning": "Validate external indicators against known C2 servers, vulnerability scanners, and malicious hash feeds",
+      "tool_used": "lookup_threat_intel",
+      "query": "IOCs: ['10.0.0.88', '192.168.250.0']",
+      "result_summary": "Evaluated 2 indicators. Malicious tags found: [].",
+      "events_found": 0,
+      "timestamp": "2026-08-20T21:26:26.701191Z"
+    },
+    {
+      "step_number": 6,
+      "action": "Synthesize final investigation verdict and containment action",
+      "reasoning": "Weigh threat intel confidence, correlation patterns, and administrative context to assign verdict",
+      "tool_used": "investigation_synthesis",
+      "query": "Analytical evaluation",
+      "result_summary": "Verdict: SUSPICIOUS | Recommended Action: MONITOR",
+      "events_found": 1,
+      "timestamp": "2026-08-20T21:26:26.701226Z"
+    }
+  ],
+  "log_events": [
+    {
+      "id": "8b455bde-7695-417d-9d53-f7031b12af22",
+      "timestamp": "2024-08-14T11:00:00",
+      "source_type": "firewall",
+      "src_ip": "10.0.0.88",
+      "dest_ip": "192.168.250.50",
+      "src_port": 40000,
+      "dest_port": 22,
+      "user": "",
+      "host": "fw-01",
+      "action": "allow",
+      "raw_event": "id=firewall action=allow srcip=10.0.0.88 dstip=192.168.250.50 dstport=22",
+      "metadata": {
+        "protocol": "tcp",
+        "bytes_sent": 60,
+        "bytes_received": 44
+      },
+      "scenario_id": "scenario_05_reconnaissance"
+    },
+    {
+      "id": "c984d815-0e67-4d60-bbc9-da077869618b",
+      "timestamp": "2024-08-14T11:00:01",
+      "source_type": "firewall",
+      "src_ip": "10.0.0.88",
+      "dest_ip": "192.168.250.50",
+      "src_port": 40001,
+      "dest_port": 80,
+      "user": "",
+      "host": "fw-01",
+      "action": "allow",
+      "raw_event": "id=firewall action=allow srcip=10.0.0.88 dstip=192.168.250.50 dstport=80",
+      "metadata": {
+        "protocol": "tcp",
+        "bytes_sent": 60,
+        "bytes_received": 44
+      },
+      "scenario_id": "scenario_05_reconnaissance"
+    },
+    {
+      "id": "9a414672-a476-4b15-925e-59936fee4403",
+      "timestamp": "2024-08-14T11:00:02",
+      "source_type": "firewall",
+      "src_ip": "10.0.0.88",
+      "dest_ip": "192.168.250.50",
+      "src_port": 40002,
+      "dest_port": 443,
+      "user": "",
+      "host": "fw-01",
+      "action": "allow",
+      "raw_event": "id=firewall action=allow srcip=10.0.0.88 dstip=192.168.250.50 dstport=443",
+      "metadata": {
+        "protocol": "tcp",
+        "bytes_sent": 60,
+        "bytes_received": 44
+      },
+      "scenario_id": "scenario_05_reconnaissance"
+    },
+    {
+      "id": "762b7402-9419-42f3-bac3-8a3734b37057",
+      "timestamp": "2024-08-14T11:00:03",
+      "source_type": "firewall",
+      "src_ip": "10.0.0.88",
+      "dest_ip": "192.168.250.50",
+      "src_port": 40003,
+      "dest_port": 445,
+      "user": "",
+      "host": "fw-01",
+      "action": "allow",
+      "raw_event": "id=firewall action=allow srcip=10.0.0.88 dstip=192.168.250.50 dstport=445",
+      "metadata": {
+        "protocol": "tcp",
+        "bytes_sent": 60,
+        "bytes_received": 44
+      },
+      "scenario_id": "scenario_05_reconnaissance"
+    },
+    {
+      "id": "85f09a29-8425-4aaf-8ec6-1b9aea858cb4",
+      "timestamp": "2024-08-14T11:00:04",
+      "source_type": "firewall",
+      "src_ip": "10.0.0.88",
+      "dest_ip": "192.168.250.50",
+      "src_port": 40004,
+      "dest_port": 3389,
+      "user": "",
+      "host": "fw-01",
+      "action": "deny",
+      "raw_event": "id=firewall action=deny srcip=10.0.0.88 dstip=192.168.250.50 dstport=3389",
+      "metadata": {
+        "protocol": "tcp",
+        "bytes_sent": 60,
+        "bytes_received": 0
+      },
+      "scenario_id": "scenario_05_reconnaissance"
+    },
+    {
+      "id": "901c449e-2a9f-424e-9a5d-ad0431ea29b4",
+      "timestamp": "2024-08-14T11:00:05",
+      "source_type": "firewall",
+      "src_ip": "10.0.0.88",
+      "dest_ip": "192.168.250.50",
+      "src_port": 40005,
+      "dest_port": 8080,
+      "user": "",
+      "host": "fw-01",
+      "action": "allow",
+      "raw_event": "id=firewall action=allow srcip=10.0.0.88 dstip=192.168.250.50 dstport=8080",
+      "metadata": {
+        "protocol": "tcp",
+        "bytes_sent": 60,
+        "bytes_received": 44
+      },
+      "scenario_id": "scenario_05_reconnaissance"
+    },
+    {
+      "id": "80215be4-f86a-4882-b485-f502a358ab49",
+      "timestamp": "2024-08-14T11:00:06",
+      "source_type": "firewall",
+      "src_ip": "10.0.0.88",
+      "dest_ip": "192.168.250.50",
+      "src_port": 40006,
+      "dest_port": 8443,
+      "user": "",
+      "host": "fw-01",
+      "action": "deny",
+      "raw_event": "id=firewall action=deny srcip=10.0.0.88 dstip=192.168.250.50 dstport=8443",
+      "metadata": {
+        "protocol": "tcp",
+        "bytes_sent": 60,
+        "bytes_received": 0
+      },
+      "scenario_id": "scenario_05_reconnaissance"
+    },
+    {
+      "id": "ad360f11-63b9-41d8-b4e7-7f25c16f51d9",
+      "timestamp": "2024-08-14T11:00:07",
+      "source_type": "firewall",
+      "src_ip": "10.0.0.88",
+      "dest_ip": "192.168.250.70",
+      "src_port": 40007,
+      "dest_port": 22,
+      "user": "",
+      "host": "fw-01",
+      "action": "allow",
+      "raw_event": "id=firewall action=allow srcip=10.0.0.88 dstip=192.168.250.70 dstport=22",
+      "metadata": {
+        "protocol": "tcp",
+        "bytes_sent": 60,
+        "bytes_received": 44
+      },
+      "scenario_id": "scenario_05_reconnaissance"
+    },
+    {
+      "id": "3680fab2-e4ca-4b1f-8b53-8be6f8f69a2d",
+      "timestamp": "2024-08-14T11:00:08",
+      "source_type": "firewall",
+      "src_ip": "10.0.0.88",
+      "dest_ip": "192.168.250.70",
+      "src_port": 40008,
+      "dest_port": 80,
+      "user": "",
+      "host": "fw-01",
+      "action": "allow",
+      "raw_event": "id=firewall action=allow srcip=10.0.0.88 dstip=192.168.250.70 dstport=80",
+      "metadata": {
+        "protocol": "tcp",
+        "bytes_sent": 60,
+        "bytes_received": 44
+      },
+      "scenario_id": "scenario_05_reconnaissance"
+    },
+    {
+      "id": "fc920ee4-7c06-4c73-a406-957bb07189a4",
+      "timestamp": "2024-08-14T11:00:09",
+      "source_type": "firewall",
+      "src_ip": "10.0.0.88",
+      "dest_ip": "192.168.250.70",
+      "src_port": 40009,
+      "dest_port": 443,
+      "user": "",
+      "host": "fw-01",
+      "action": "allow",
+      "raw_event": "id=firewall action=allow srcip=10.0.0.88 dstip=192.168.250.70 dstport=443",
+      "metadata": {
+        "protocol": "tcp",
+        "bytes_sent": 60,
+        "bytes_received": 44
+      },
+      "scenario_id": "scenario_05_reconnaissance"
+    },
+    {
+      "id": "599f95ff-4ea8-4c81-9409-bbae5ac36573",
+      "timestamp": "2024-08-14T11:00:10",
+      "source_type": "firewall",
+      "src_ip": "10.0.0.88",
+      "dest_ip": "192.168.250.70",
+      "src_port": 40010,
+      "dest_port": 445,
+      "user": "",
+      "host": "fw-01",
+      "action": "allow",
+      "raw_event": "id=firewall action=allow srcip=10.0.0.88 dstip=192.168.250.70 dstport=445",
+      "metadata": {
+        "protocol": "tcp",
+        "bytes_sent": 60,
+        "bytes_received": 44
+      },
+      "scenario_id": "scenario_05_reconnaissance"
+    },
+    {
+      "id": "a6412098-ffe2-4383-8e71-6e39dfa777ef",
+      "timestamp": "2024-08-14T11:00:11",
+      "source_type": "firewall",
+      "src_ip": "10.0.0.88",
+      "dest_ip": "192.168.250.70",
+      "src_port": 40011,
+      "dest_port": 3389,
+      "user": "",
+      "host": "fw-01",
+      "action": "deny",
+      "raw_event": "id=firewall action=deny srcip=10.0.0.88 dstip=192.168.250.70 dstport=3389",
+      "metadata": {
+        "protocol": "tcp",
+        "bytes_sent": 60,
+        "bytes_received": 0
+      },
+      "scenario_id": "scenario_05_reconnaissance"
+    },
+    {
+      "id": "9b00d23b-81dc-441c-8a62-c2c633d615e6",
+      "timestamp": "2024-08-14T11:00:12",
+      "source_type": "firewall",
+      "src_ip": "10.0.0.88",
+      "dest_ip": "192.168.250.70",
+      "src_port": 40012,
+      "dest_port": 8080,
+      "user": "",
+      "host": "fw-01",
+      "action": "allow",
+      "raw_event": "id=firewall action=allow srcip=10.0.0.88 dstip=192.168.250.70 dstport=8080",
+      "metadata": {
+        "protocol": "tcp",
+        "bytes_sent": 60,
+        "bytes_received": 44
+      },
+      "scenario_id": "scenario_05_reconnaissance"
+    },
+    {
+      "id": "f41c4e97-6fe2-456d-9432-079bad0d1d0d",
+      "timestamp": "2024-08-14T11:00:13",
+      "source_type": "firewall",
+      "src_ip": "10.0.0.88",
+      "dest_ip": "192.168.250.70",
+      "src_port": 40013,
+      "dest_port": 8443,
+      "user": "",
+      "host": "fw-01",
+      "action": "deny",
+      "raw_event": "id=firewall action=deny srcip=10.0.0.88 dstip=192.168.250.70 dstport=8443",
+      "metadata": {
+        "protocol": "tcp",
+        "bytes_sent": 60,
+        "bytes_received": 0
+      },
+      "scenario_id": "scenario_05_reconnaissance"
+    },
+    {
+      "id": "62f4e185-1f6d-46b3-b8ac-70a4e42d54ae",
+      "timestamp": "2024-08-14T11:00:14",
+      "source_type": "firewall",
+      "src_ip": "10.0.0.88",
+      "dest_ip": "192.168.250.100",
+      "src_port": 40014,
+      "dest_port": 22,
+      "user": "",
+      "host": "fw-01",
+      "action": "allow",
+      "raw_event": "id=firewall action=allow srcip=10.0.0.88 dstip=192.168.250.100 dstport=22",
+      "metadata": {
+        "protocol": "tcp",
+        "bytes_sent": 60,
+        "bytes_received": 44
+      },
+      "scenario_id": "scenario_05_reconnaissance"
+    },
+    {
+      "id": "f82dc497-d0bd-41c2-ab68-6221c936dfab",
+      "timestamp": "2024-08-14T11:00:15",
+      "source_type": "firewall",
+      "src_ip": "10.0.0.88",
+      "dest_ip": "192.168.250.100",
+      "src_port": 40015,
+      "dest_port": 80,
+      "user": "",
+      "host": "fw-01",
+      "action": "allow",
+      "raw_event": "id=firewall action=allow srcip=10.0.0.88 dstip=192.168.250.100 dstport=80",
+      "metadata": {
+        "protocol": "tcp",
+        "bytes_sent": 60,
+        "bytes_received": 44
+      },
+      "scenario_id": "scenario_05_reconnaissance"
+    },
+    {
+      "id": "0dcc14bd-781c-47d8-8ed7-a57d991a96b3",
+      "timestamp": "2024-08-14T11:00:16",
+      "source_type": "firewall",
+      "src_ip": "10.0.0.88",
+      "dest_ip": "192.168.250.100",
+      "src_port": 40016,
+      "dest_port": 443,
+      "user": "",
+      "host": "fw-01",
+      "action": "allow",
+      "raw_event": "id=firewall action=allow srcip=10.0.0.88 dstip=192.168.250.100 dstport=443",
+      "metadata": {
+        "protocol": "tcp",
+        "bytes_sent": 60,
+        "bytes_received": 44
+      },
+      "scenario_id": "scenario_05_reconnaissance"
+    },
+    {
+      "id": "30f26775-d977-4d5f-bf91-c64905615670",
+      "timestamp": "2024-08-14T11:00:17",
+      "source_type": "firewall",
+      "src_ip": "10.0.0.88",
+      "dest_ip": "192.168.250.100",
+      "src_port": 40017,
+      "dest_port": 445,
+      "user": "",
+      "host": "fw-01",
+      "action": "allow",
+      "raw_event": "id=firewall action=allow srcip=10.0.0.88 dstip=192.168.250.100 dstport=445",
+      "metadata": {
+        "protocol": "tcp",
+        "bytes_sent": 60,
+        "bytes_received": 44
+      },
+      "scenario_id": "scenario_05_reconnaissance"
+    },
+    {
+      "id": "5458f0ae-b801-48a7-a4e9-9c5ef2a751e7",
+      "timestamp": "2024-08-14T11:00:18",
+      "source_type": "firewall",
+      "src_ip": "10.0.0.88",
+      "dest_ip": "192.168.250.100",
+      "src_port": 40018,
+      "dest_port": 3389,
+      "user": "",
+      "host": "fw-01",
+      "action": "deny",
+      "raw_event": "id=firewall action=deny srcip=10.0.0.88 dstip=192.168.250.100 dstport=3389",
+      "metadata": {
+        "protocol": "tcp",
+        "bytes_sent": 60,
+        "bytes_received": 0
+      },
+      "scenario_id": "scenario_05_reconnaissance"
+    },
+    {
+      "id": "aca83071-2651-4a28-b735-1f58614668b7",
+      "timestamp": "2024-08-14T11:00:19",
+      "source_type": "firewall",
+      "src_ip": "10.0.0.88",
+      "dest_ip": "192.168.250.100",
+      "src_port": 40019,
+      "dest_port": 8080,
+      "user": "",
+      "host": "fw-01",
+      "action": "allow",
+      "raw_event": "id=firewall action=allow srcip=10.0.0.88 dstip=192.168.250.100 dstport=8080",
+      "metadata": {
+        "protocol": "tcp",
+        "bytes_sent": 60,
+        "bytes_received": 44
+      },
+      "scenario_id": "scenario_05_reconnaissance"
+    },
+    {
+      "id": "a3b26350-2d5d-4368-bda0-07c5128c3a06",
+      "timestamp": "2024-08-14T11:00:20",
+      "source_type": "firewall",
+      "src_ip": "10.0.0.88",
+      "dest_ip": "192.168.250.100",
+      "src_port": 40020,
+      "dest_port": 8443,
+      "user": "",
+      "host": "fw-01",
+      "action": "deny",
+      "raw_event": "id=firewall action=deny srcip=10.0.0.88 dstip=192.168.250.100 dstport=8443",
+      "metadata": {
+        "protocol": "tcp",
+        "bytes_sent": 60,
+        "bytes_received": 0
+      },
+      "scenario_id": "scenario_05_reconnaissance"
+    },
+    {
+      "id": "f26a7b24-6903-435b-a244-e7403b2bd7e4",
+      "timestamp": "2024-08-14T11:00:21",
+      "source_type": "firewall",
+      "src_ip": "10.0.0.88",
+      "dest_ip": "192.168.250.120",
+      "src_port": 40021,
+      "dest_port": 22,
+      "user": "",
+      "host": "fw-01",
+      "action": "allow",
+      "raw_event": "id=firewall action=allow srcip=10.0.0.88 dstip=192.168.250.120 dstport=22",
+      "metadata": {
+        "protocol": "tcp",
+        "bytes_sent": 60,
+        "bytes_received": 44
+      },
+      "scenario_id": "scenario_05_reconnaissance"
+    },
+    {
+      "id": "fb64e77e-ebbb-4350-8856-ddcff0af1611",
+      "timestamp": "2024-08-14T11:00:22",
+      "source_type": "firewall",
+      "src_ip": "10.0.0.88",
+      "dest_ip": "192.168.250.120",
+      "src_port": 40022,
+      "dest_port": 80,
+      "user": "",
+      "host": "fw-01",
+      "action": "allow",
+      "raw_event": "id=firewall action=allow srcip=10.0.0.88 dstip=192.168.250.120 dstport=80",
+      "metadata": {
+        "protocol": "tcp",
+        "bytes_sent": 60,
+        "bytes_received": 44
+      },
+      "scenario_id": "scenario_05_reconnaissance"
+    },
+    {
+      "id": "cca3bc71-5017-402d-a272-9e78306d0d34",
+      "timestamp": "2024-08-14T11:00:23",
+      "source_type": "firewall",
+      "src_ip": "10.0.0.88",
+      "dest_ip": "192.168.250.120",
+      "src_port": 40023,
+      "dest_port": 443,
+      "user": "",
+      "host": "fw-01",
+      "action": "allow",
+      "raw_event": "id=firewall action=allow srcip=10.0.0.88 dstip=192.168.250.120 dstport=443",
+      "metadata": {
+        "protocol": "tcp",
+        "bytes_sent": 60,
+        "bytes_received": 44
+      },
+      "scenario_id": "scenario_05_reconnaissance"
+    },
+    {
+      "id": "7b1b1f02-da93-4500-a07a-bf3c33a9978b",
+      "timestamp": "2024-08-14T11:00:24",
+      "source_type": "firewall",
+      "src_ip": "10.0.0.88",
+      "dest_ip": "192.168.250.120",
+      "src_port": 40024,
+      "dest_port": 445,
+      "user": "",
+      "host": "fw-01",
+      "action": "allow",
+      "raw_event": "id=firewall action=allow srcip=10.0.0.88 dstip=192.168.250.120 dstport=445",
+      "metadata": {
+        "protocol": "tcp",
+        "bytes_sent": 60,
+        "bytes_received": 44
+      },
+      "scenario_id": "scenario_05_reconnaissance"
+    },
+    {
+      "id": "e3a4a414-5433-4bbe-8045-8e50fe16ae35",
+      "timestamp": "2024-08-14T11:00:25",
+      "source_type": "firewall",
+      "src_ip": "10.0.0.88",
+      "dest_ip": "192.168.250.120",
+      "src_port": 40025,
+      "dest_port": 3389,
+      "user": "",
+      "host": "fw-01",
+      "action": "deny",
+      "raw_event": "id=firewall action=deny srcip=10.0.0.88 dstip=192.168.250.120 dstport=3389",
+      "metadata": {
+        "protocol": "tcp",
+        "bytes_sent": 60,
+        "bytes_received": 0
+      },
+      "scenario_id": "scenario_05_reconnaissance"
+    },
+    {
+      "id": "3bb26199-8f61-44a0-8432-f3ce8730428e",
+      "timestamp": "2024-08-14T11:00:26",
+      "source_type": "firewall",
+      "src_ip": "10.0.0.88",
+      "dest_ip": "192.168.250.120",
+      "src_port": 40026,
+      "dest_port": 8080,
+      "user": "",
+      "host": "fw-01",
+      "action": "allow",
+      "raw_event": "id=firewall action=allow srcip=10.0.0.88 dstip=192.168.250.120 dstport=8080",
+      "metadata": {
+        "protocol": "tcp",
+        "bytes_sent": 60,
+        "bytes_received": 44
+      },
+      "scenario_id": "scenario_05_reconnaissance"
+    },
+    {
+      "id": "5ca68667-ecc1-4d5f-ae30-72b12e98f26f",
+      "timestamp": "2024-08-14T11:00:27",
+      "source_type": "firewall",
+      "src_ip": "10.0.0.88",
+      "dest_ip": "192.168.250.120",
+      "src_port": 40027,
+      "dest_port": 8443,
+      "user": "",
+      "host": "fw-01",
+      "action": "deny",
+      "raw_event": "id=firewall action=deny srcip=10.0.0.88 dstip=192.168.250.120 dstport=8443",
+      "metadata": {
+        "protocol": "tcp",
+        "bytes_sent": 60,
+        "bytes_received": 0
+      },
+      "scenario_id": "scenario_05_reconnaissance"
+    },
+    {
+      "id": "30299207-7b40-4ee1-ab66-345776b1ba83",
+      "timestamp": "2024-08-14T11:00:30",
+      "source_type": "ids",
+      "src_ip": "10.0.0.88",
+      "dest_ip": "192.168.250.0/24",
+      "src_port": null,
+      "dest_port": null,
+      "user": "",
+      "host": "ids-01",
+      "action": "alert",
+      "raw_event": "[**] ET SCAN Nmap Scripting Engine User-Agent Detected [**] 10.0.0.88",
+      "metadata": {
+        "signature": "ET SCAN Nmap Scripting Engine User-Agent Detected",
+        "severity": 2,
+        "category": "network-scan",
+        "unique_destinations": 4,
+        "unique_ports": 7
+      },
+      "scenario_id": "scenario_05_reconnaissance"
+    }
+  ],
+  "correlations": [],
+  "threat_intel": [
+    {
+      "ioc_value": "10.0.0.88",
+      "ioc_type": "ipv4",
+      "reputation": "unknown",
+      "confidence": 0.3,
+      "tags": [
+        "internal",
+        "scanning"
+      ],
+      "source": "local_known_iocs",
+      "raw_response": {
+        "reputation": "unknown",
+        "confidence": 0.3,
+        "tags": [
+          "internal",
+          "scanning"
+        ],
+        "first_seen": "2024-08-14",
+        "description": "IP interne — activité de scanning détectée, potentiellement légitime (IT audit) ou compromis",
+        "references": []
+      }
+    },
+    {
+      "ioc_value": "192.168.250.0",
+      "ioc_type": "ipv4",
+      "reputation": "unknown",
+      "confidence": 0.0,
+      "tags": [],
+      "source": "none",
+      "raw_response": {}
+    }
+  ],
+  "severity_score": null,
+  "verdict": "suspicious",
+  "recommended_action": "monitor",
+  "started_at": "2026-08-20T21:26:26.694474Z",
+  "completed_at": "2026-08-20T21:26:26.701287Z"
+}

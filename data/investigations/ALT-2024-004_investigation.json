@@ -1,0 +1,278 @@
+{
+  "alert_id": "ALT-2024-004",
+  "iocs": {
+    "alert_id": "ALT-2024-004",
+    "iocs": [
+      {
+        "ioc_type": "ipv4",
+        "value": "192.168.250.120",
+        "context": "alert_ALT-2024-004"
+      },
+      {
+        "ioc_type": "ipv4",
+        "value": "91.234.99.42",
+        "context": "alert_ALT-2024-004"
+      },
+      {
+        "ioc_type": "hostname",
+        "value": "ws-jdoe",
+        "context": "alert_ALT-2024-004"
+      },
+      {
+        "ioc_type": "user",
+        "value": "WAYNE\\j.doe",
+        "context": "user"
+      }
+    ],
+    "extraction_timestamp": "2026-08-20T21:26:26.690119Z"
+  },
+  "steps": [
+    {
+      "step_number": 1,
+      "action": "Extract Indicators of Compromise (IOCs)",
+      "reasoning": "Extract all atomic observables (IPs, domains, hashes, users, hosts) from raw alert payload",
+      "tool_used": "extract_iocs",
+      "query": "content={\"src_ip\": \"192.168.250.120\", \"dest_ip\": \"91.234.99.42\", \"dest_port\": 443, \"byte...",
+      "result_summary": "Extracted 4 IOCs: 2 IPs, 0 hashes, 1 users, 0 domains.",
+      "events_found": 4,
+      "timestamp": "2026-08-20T21:26:26.690144Z"
+    },
+    {
+      "step_number": 2,
+      "action": "Query network and perimeter telemetry for source IP '192.168.250.120'",
+      "reasoning": "Determine whether inbound/outbound connection volume, targeted ports, or IDS signatures indicate malicious probing",
+      "tool_used": "query_logs",
+      "query": "src_ip=192.168.250.120, scenario_id=scenario_04_data_exfiltration",
+      "result_summary": "Identified 4 matching network/IDS telemetry events.",
+      "events_found": 4,
+      "timestamp": "2026-08-20T21:26:26.690589Z"
+    },
+    {
+      "step_number": 3,
+      "action": "Query authentication and endpoint activity for user 'WAYNE\\j.doe' and host 'ws-jdoe'",
+      "reasoning": "Assess whether user account suffered brute forcing, unauthorized privilege escalation, or executed suspicious processes",
+      "tool_used": "query_logs",
+      "query": "user=WAYNE\\j.doe, host=ws-jdoe, scenario_id=scenario_04_data_exfiltration",
+      "result_summary": "Retrieved 4 authentication/endpoint events.",
+      "events_found": 4,
+      "timestamp": "2026-08-20T21:26:26.691053Z"
+    },
+    {
+      "step_number": 4,
+      "action": "Cross-source temporal correlation and attack pattern reconstruction",
+      "reasoning": "Synthesize event timeline across perimeter, authentication, and endpoint telemetry to identify multi-stage attack patterns",
+      "tool_used": "correlate_events",
+      "query": "scenario_id=scenario_04_data_exfiltration, target_ip=192.168.250.120",
+      "result_summary": "Correlated 7 events. Detected 1 attack pattern(s): ['command_and_control_or_exfiltration'].",
+      "events_found": 1,
+      "timestamp": "2026-08-20T21:26:26.691681Z"
+    },
+    {
+      "step_number": 5,
+      "action": "Query Threat Intelligence feeds for all extracted external IOCs",
+      "reasoning": "Validate external indicators against known C2 servers, vulnerability scanners, and malicious hash feeds",
+      "tool_used": "lookup_threat_intel",
+      "query": "IOCs: ['192.168.250.120', '91.234.99.42']",
+      "result_summary": "Evaluated 2 indicators. Malicious tags found: [['exfiltration', 'data-theft', 'drop-server']].",
+      "events_found": 1,
+      "timestamp": "2026-08-20T21:26:26.692065Z"
+    },
+    {
+      "step_number": 6,
+      "action": "Synthesize final investigation verdict and containment action",
+      "reasoning": "Weigh threat intel confidence, correlation patterns, and administrative context to assign verdict",
+      "tool_used": "investigation_synthesis",
+      "query": "Analytical evaluation",
+      "result_summary": "Verdict: TRUE_POSITIVE | Recommended Action: CONTAIN",
+      "events_found": 1,
+      "timestamp": "2026-08-20T21:26:26.692119Z"
+    }
+  ],
+  "log_events": [
+    {
+      "id": "b7e16764-bed0-46ec-8c40-d6fbb8624009",
+      "timestamp": "2024-08-13T22:30:00",
+      "source_type": "auth",
+      "src_ip": "192.168.250.120",
+      "dest_ip": "",
+      "src_port": null,
+      "dest_port": null,
+      "user": "WAYNE\\j.doe",
+      "host": "ws-jdoe",
+      "action": "login_success",
+      "raw_event": "An account was successfully logged on. User: WAYNE\\j.doe, Workstation: ws-jdoe, LogonType: 2",
+      "metadata": {
+        "event_id": 4624,
+        "logon_type": 2
+      },
+      "scenario_id": "scenario_04_data_exfiltration"
+    },
+    {
+      "id": "368642b0-38e1-475e-b741-cc92ebde87f3",
+      "timestamp": "2024-08-13T22:35:00",
+      "source_type": "endpoint",
+      "src_ip": "",
+      "dest_ip": "",
+      "src_port": null,
+      "dest_port": null,
+      "user": "WAYNE\\j.doe",
+      "host": "ws-jdoe",
+      "action": "file_access",
+      "raw_event": "File access: \\\\fileserver\\finance\\Q3_2024_financials.xlsx, User: WAYNE\\j.doe, Access: Read",
+      "metadata": {
+        "event_id": 4663,
+        "file_path": "\\\\fileserver\\finance\\Q3_2024_financials.xlsx",
+        "access_type": "read"
+      },
+      "scenario_id": "scenario_04_data_exfiltration"
+    },
+    {
+      "id": "28bdcfba-e4df-4c11-8aa7-51e929836d8c",
+      "timestamp": "2024-08-13T22:36:00",
+      "source_type": "endpoint",
+      "src_ip": "",
+      "dest_ip": "",
+      "src_port": null,
+      "dest_port": null,
+      "user": "WAYNE\\j.doe",
+      "host": "ws-jdoe",
+      "action": "file_access",
+      "raw_event": "File access: \\\\fileserver\\hr\\employee_salaries_2024.csv, User: WAYNE\\j.doe, Access: Read",
+      "metadata": {
+        "event_id": 4663,
+        "file_path": "\\\\fileserver\\hr\\employee_salaries_2024.csv",
+        "access_type": "read"
+      },
+      "scenario_id": "scenario_04_data_exfiltration"
+    },
+    {
+      "id": "66f0e7f5-d7c2-4a0c-b693-8bd75fc9b40d",
+      "timestamp": "2024-08-13T22:38:00",
+      "source_type": "endpoint",
+      "src_ip": "",
+      "dest_ip": "",
+      "src_port": null,
+      "dest_port": null,
+      "user": "WAYNE\\j.doe",
+      "host": "ws-jdoe",
+      "action": "process_create",
+      "raw_event": "Process Create: 7z.exe a C:\\Temp\\backup.7z \\\\fileserver\\finance\\ \\\\fileserver\\hr\\, User: WAYNE\\j.doe",
+      "metadata": {
+        "process_name": "7z.exe",
+        "command_line": "7z.exe a C:\\Temp\\backup.7z \\\\fileserver\\finance\\ \\\\fileserver\\hr\\",
+        "parent_process": "cmd.exe",
+        "event_id": 1
+      },
+      "scenario_id": "scenario_04_data_exfiltration"
+    },
+    {
+      "id": "5455839e-190f-4ba2-ad3a-4dd51eed1128",
+      "timestamp": "2024-08-13T22:41:50",
+      "source_type": "dns",
+      "src_ip": "192.168.250.120",
+      "dest_ip": "192.168.250.10",
+      "src_port": null,
+      "dest_port": null,
+      "user": "",
+      "host": "ws-jdoe",
+      "action": "dns_query",
+      "raw_event": "DNS query: dropzone-files.xyz -> 91.234.99.42, Type: A, Client: 192.168.250.120",
+      "metadata": {
+        "query": "dropzone-files.xyz",
+        "query_type": "A",
+        "answer": "91.234.99.42"
+      },
+      "scenario_id": "scenario_04_data_exfiltration"
+    },
+    {
+      "id": "f6c8b799-2cc5-4e28-9a78-c422fd69baf5",
+      "timestamp": "2024-08-13T22:42:00",
+      "source_type": "firewall",
+      "src_ip": "192.168.250.120",
+      "dest_ip": "91.234.99.42",
+      "src_port": 54123,
+      "dest_port": 443,
+      "user": "",
+      "host": "fw-01",
+      "action": "allow",
+      "raw_event": "id=firewall action=allow srcip=192.168.250.120 dstip=91.234.99.42 dstport=443 bytes_sent=48500000",
+      "metadata": {
+        "protocol": "tcp",
+        "bytes_sent": 48500000,
+        "bytes_received": 12000,
+        "session_duration": 180
+      },
+      "scenario_id": "scenario_04_data_exfiltration"
+    },
+    {
+      "id": "37689825-55a9-46a8-b990-e27affc1f901",
+      "timestamp": "2024-08-13T22:42:00",
+      "source_type": "ids",
+      "src_ip": "192.168.250.120",
+      "dest_ip": "91.234.99.42",
+      "src_port": 54123,
+      "dest_port": 443,
+      "user": "",
+      "host": "ids-01",
+      "action": "alert",
+      "raw_event": "[**] ET POLICY Outbound Large File Transfer [**] 192.168.250.120 -> 91.234.99.42",
+      "metadata": {
+        "signature": "ET POLICY Outbound Large File Transfer",
+        "severity": 2,
+        "category": "policy-violation",
+        "bytes_transferred": 48500000
+      },
+      "scenario_id": "scenario_04_data_exfiltration"
+    }
+  ],
+  "correlations": [
+    {
+      "description": "Endpoint activity directly correlates with outbound network communication/IDS alert",
+      "events": [],
+      "pattern": "command_and_control_or_exfiltration",
+      "confidence": 0.9
+    }
+  ],
+  "threat_intel": [
+    {
+      "ioc_value": "192.168.250.120",
+      "ioc_type": "ipv4",
+      "reputation": "unknown",
+      "confidence": 0.0,
+      "tags": [],
+      "source": "none",
+      "raw_response": {}
+    },
+    {
+      "ioc_value": "91.234.99.42",
+      "ioc_type": "ipv4",
+      "reputation": "malicious",
+      "confidence": 0.9,
+      "tags": [
+        "exfiltration",
+        "data-theft",
+        "drop-server"
+      ],
+      "source": "local_known_iocs",
+      "raw_response": {
+        "reputation": "malicious",
+        "confidence": 0.9,
+        "tags": [
+          "exfiltration",
+          "data-theft",
+          "drop-server"
+        ],
+        "first_seen": "2024-08-13",
+        "description": "Serveur de dépôt utilisé pour l'exfiltration de données",
+        "references": [
+          "BOTS v1 Data exfiltration scenario"
+        ]
+      }
+    }
+  ],
+  "severity_score": null,
+  "verdict": "true_positive",
+  "recommended_action": "contain",
+  "started_at": "2026-08-20T21:26:26.689376Z",
+  "completed_at": "2026-08-20T21:26:26.692177Z"
+}

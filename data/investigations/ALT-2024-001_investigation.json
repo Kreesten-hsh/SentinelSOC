@@ -1,0 +1,415 @@
+{
+  "alert_id": "ALT-2024-001",
+  "iocs": {
+    "alert_id": "ALT-2024-001",
+    "iocs": [
+      {
+        "ioc_type": "ipv4",
+        "value": "23.22.63.114",
+        "context": "alert_ALT-2024-001"
+      },
+      {
+        "ioc_type": "ipv4",
+        "value": "192.168.250.70",
+        "context": "alert_ALT-2024-001"
+      }
+    ],
+    "extraction_timestamp": "2026-08-20T21:26:26.668604Z"
+  },
+  "steps": [
+    {
+      "step_number": 1,
+      "action": "Extract Indicators of Compromise (IOCs)",
+      "reasoning": "Extract all atomic observables (IPs, domains, hashes, users, hosts) from raw alert payload",
+      "tool_used": "extract_iocs",
+      "query": "content={\"src_ip\": \"23.22.63.114\", \"dest_ip\": \"192.168.250.70\", \"dest_port\": 80, \"signat...",
+      "result_summary": "Extracted 2 IOCs: 2 IPs, 0 hashes, 0 users, 0 domains.",
+      "events_found": 2,
+      "timestamp": "2026-08-20T21:26:26.668637Z"
+    },
+    {
+      "step_number": 2,
+      "action": "Query network and perimeter telemetry for source IP '23.22.63.114'",
+      "reasoning": "Determine whether inbound/outbound connection volume, targeted ports, or IDS signatures indicate malicious probing",
+      "tool_used": "query_logs",
+      "query": "src_ip=23.22.63.114, scenario_id=scenario_01_web_defacement",
+      "result_summary": "Identified 13 matching network/IDS telemetry events.",
+      "events_found": 13,
+      "timestamp": "2026-08-20T21:26:26.669643Z"
+    },
+    {
+      "step_number": 3,
+      "action": "Query authentication and endpoint activity for user 'None' and host 'None'",
+      "reasoning": "Assess whether user account suffered brute forcing, unauthorized privilege escalation, or executed suspicious processes",
+      "tool_used": "query_logs",
+      "query": "user=None, host=None, scenario_id=scenario_01_web_defacement",
+      "result_summary": "Retrieved 14 authentication/endpoint events.",
+      "events_found": 14,
+      "timestamp": "2026-08-20T21:26:26.670816Z"
+    },
+    {
+      "step_number": 4,
+      "action": "Cross-source temporal correlation and attack pattern reconstruction",
+      "reasoning": "Synthesize event timeline across perimeter, authentication, and endpoint telemetry to identify multi-stage attack patterns",
+      "tool_used": "correlate_events",
+      "query": "scenario_id=scenario_01_web_defacement, target_ip=23.22.63.114",
+      "result_summary": "Correlated 14 events. Detected 2 attack pattern(s): ['reconnaissance_followed_by_execution', 'command_and_control_or_exfiltration'].",
+      "events_found": 2,
+      "timestamp": "2026-08-20T21:26:26.671276Z"
+    },
+    {
+      "step_number": 5,
+      "action": "Query Threat Intelligence feeds for all extracted external IOCs",
+      "reasoning": "Validate external indicators against known C2 servers, vulnerability scanners, and malicious hash feeds",
+      "tool_used": "lookup_threat_intel",
+      "query": "IOCs: ['23.22.63.114', '192.168.250.70']",
+      "result_summary": "Evaluated 2 indicators. Malicious tags found: [['web-scanner', 'acunetix', 'vulnerability-assessment']].",
+      "events_found": 1,
+      "timestamp": "2026-08-20T21:26:26.671517Z"
+    },
+    {
+      "step_number": 6,
+      "action": "Synthesize final investigation verdict and containment action",
+      "reasoning": "Weigh threat intel confidence, correlation patterns, and administrative context to assign verdict",
+      "tool_used": "investigation_synthesis",
+      "query": "Analytical evaluation",
+      "result_summary": "Verdict: TRUE_POSITIVE | Recommended Action: CONTAIN",
+      "events_found": 1,
+      "timestamp": "2026-08-20T21:26:26.671568Z"
+    }
+  ],
+  "log_events": [
+    {
+      "id": "01ac7efd-3a3d-4326-9c20-c165394263fe",
+      "timestamp": "2024-08-10T14:20:00",
+      "source_type": "firewall",
+      "src_ip": "23.22.63.114",
+      "dest_ip": "192.168.250.70",
+      "src_port": 49152,
+      "dest_port": 80,
+      "user": "",
+      "host": "fw-01",
+      "action": "allow",
+      "raw_event": "id=firewall action=allow srcip=23.22.63.114 dstip=192.168.250.70 dstport=80 proto=tcp",
+      "metadata": {
+        "protocol": "tcp",
+        "bytes_sent": 1240,
+        "bytes_received": 5800,
+        "session_duration": 2
+      },
+      "scenario_id": "scenario_01_web_defacement"
+    },
+    {
+      "id": "eaada52c-de38-4ce4-a1d1-d710adf1c60e",
+      "timestamp": "2024-08-10T14:20:01",
+      "source_type": "ids",
+      "src_ip": "23.22.63.114",
+      "dest_ip": "192.168.250.70",
+      "src_port": 49152,
+      "dest_port": 80,
+      "user": "",
+      "host": "ids-01",
+      "action": "alert",
+      "raw_event": "[**] ET SCAN Acunetix Web Vulnerability Scanner [**] 23.22.63.114:49152 -> 192.168.250.70:80",
+      "metadata": {
+        "signature": "ET SCAN Acunetix Web Vulnerability Scanner",
+        "severity": 2,
+        "category": "web-scan"
+      },
+      "scenario_id": "scenario_01_web_defacement"
+    },
+    {
+      "id": "6ce6088d-09b7-41ed-b817-3c4e3ecb266d",
+      "timestamp": "2024-08-10T14:20:05",
+      "source_type": "webserver",
+      "src_ip": "23.22.63.114",
+      "dest_ip": "192.168.250.70",
+      "src_port": null,
+      "dest_port": 80,
+      "user": "",
+      "host": "imreallynotbatman.com",
+      "action": "GET",
+      "raw_event": "23.22.63.114 - - \"GET / HTTP/1.1\" 200 15234 \"-\" \"Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.21 (KHTML, like Gecko) Chrome/41.0.2228.0 Safari/537.21 Acunetix\"",
+      "metadata": {
+        "http_method": "GET",
+        "uri": "/",
+        "status_code": 200,
+        "user_agent": "Acunetix Web Vulnerability Scanner"
+      },
+      "scenario_id": "scenario_01_web_defacement"
+    },
+    {
+      "id": "259a9852-9ca0-4e90-a13e-bc45d3ae0318",
+      "timestamp": "2024-08-10T14:20:08",
+      "source_type": "webserver",
+      "src_ip": "23.22.63.114",
+      "dest_ip": "192.168.250.70",
+      "src_port": null,
+      "dest_port": 80,
+      "user": "",
+      "host": "imreallynotbatman.com",
+      "action": "GET",
+      "raw_event": "23.22.63.114 - - \"GET /joomla/administrator/ HTTP/1.1\" 200 8421",
+      "metadata": {
+        "http_method": "GET",
+        "uri": "/joomla/administrator/",
+        "status_code": 200,
+        "user_agent": "Acunetix"
+      },
+      "scenario_id": "scenario_01_web_defacement"
+    },
+    {
+      "id": "8ce7439d-a37e-494d-99d5-1b00d171f77c",
+      "timestamp": "2024-08-10T14:20:12",
+      "source_type": "webserver",
+      "src_ip": "23.22.63.114",
+      "dest_ip": "192.168.250.70",
+      "src_port": null,
+      "dest_port": 80,
+      "user": "",
+      "host": "imreallynotbatman.com",
+      "action": "GET",
+      "raw_event": "23.22.63.114 - - \"GET /joomla/administrator/index.php HTTP/1.1\" 200 7654",
+      "metadata": {
+        "http_method": "GET",
+        "uri": "/joomla/administrator/index.php",
+        "status_code": 200
+      },
+      "scenario_id": "scenario_01_web_defacement"
+    },
+    {
+      "id": "864de42e-648a-4642-8932-06ff962fdd75",
+      "timestamp": "2024-08-10T14:21:00",
+      "source_type": "webserver",
+      "src_ip": "23.22.63.114",
+      "dest_ip": "192.168.250.70",
+      "src_port": null,
+      "dest_port": 80,
+      "user": "",
+      "host": "imreallynotbatman.com",
+      "action": "POST",
+      "raw_event": "23.22.63.114 - - \"POST /joomla/administrator/index.php HTTP/1.1\" 303 0",
+      "metadata": {
+        "http_method": "POST",
+        "uri": "/joomla/administrator/index.php",
+        "status_code": 303,
+        "form_data": "username=admin&passwd=password123&task=login"
+      },
+      "scenario_id": "scenario_01_web_defacement"
+    },
+    {
+      "id": "ed6c02af-3cfc-498c-8987-d5ec2f58d6d5",
+      "timestamp": "2024-08-10T14:21:03",
+      "source_type": "webserver",
+      "src_ip": "23.22.63.114",
+      "dest_ip": "192.168.250.70",
+      "src_port": null,
+      "dest_port": 80,
+      "user": "",
+      "host": "imreallynotbatman.com",
+      "action": "POST",
+      "raw_event": "23.22.63.114 - - \"POST /joomla/administrator/index.php HTTP/1.1\" 303 0",
+      "metadata": {
+        "http_method": "POST",
+        "uri": "/joomla/administrator/index.php",
+        "status_code": 303,
+        "form_data": "username=admin&passwd=admin&task=login"
+      },
+      "scenario_id": "scenario_01_web_defacement"
+    },
+    {
+      "id": "982be8a3-be25-45a9-a9a3-76073b1d6fd0",
+      "timestamp": "2024-08-10T14:21:06",
+      "source_type": "webserver",
+      "src_ip": "23.22.63.114",
+      "dest_ip": "192.168.250.70",
+      "src_port": null,
+      "dest_port": 80,
+      "user": "",
+      "host": "imreallynotbatman.com",
+      "action": "POST",
+      "raw_event": "23.22.63.114 - - \"POST /joomla/administrator/index.php HTTP/1.1\" 303 0",
+      "metadata": {
+        "http_method": "POST",
+        "uri": "/joomla/administrator/index.php",
+        "status_code": 303,
+        "form_data": "username=admin&passwd=batman&task=login"
+      },
+      "scenario_id": "scenario_01_web_defacement"
+    },
+    {
+      "id": "0d09b10b-eed0-48d2-b003-a1b4f61f5b8c",
+      "timestamp": "2024-08-10T14:21:09",
+      "source_type": "webserver",
+      "src_ip": "23.22.63.114",
+      "dest_ip": "192.168.250.70",
+      "src_port": null,
+      "dest_port": 80,
+      "user": "",
+      "host": "imreallynotbatman.com",
+      "action": "POST",
+      "raw_event": "23.22.63.114 - - \"POST /joomla/administrator/index.php HTTP/1.1\" 200 12456",
+      "metadata": {
+        "http_method": "POST",
+        "uri": "/joomla/administrator/index.php",
+        "status_code": 200,
+        "form_data": "username=admin&passwd=batman&task=login"
+      },
+      "scenario_id": "scenario_01_web_defacement"
+    },
+    {
+      "id": "21bfc99c-25da-46a3-8101-28d232a40d2f",
+      "timestamp": "2024-08-10T14:21:10",
+      "source_type": "ids",
+      "src_ip": "23.22.63.114",
+      "dest_ip": "192.168.250.70",
+      "src_port": 49210,
+      "dest_port": 80,
+      "user": "",
+      "host": "ids-01",
+      "action": "alert",
+      "raw_event": "[**] ET WEB_SERVER Possible SQL Injection Attempt [**] 23.22.63.114 -> 192.168.250.70",
+      "metadata": {
+        "signature": "ET WEB_SERVER Possible SQL Injection Attempt",
+        "severity": 1,
+        "category": "web-attack"
+      },
+      "scenario_id": "scenario_01_web_defacement"
+    },
+    {
+      "id": "74c95b45-9b6b-49aa-a71c-8e40d0a3af8e",
+      "timestamp": "2024-08-10T14:22:00",
+      "source_type": "webserver",
+      "src_ip": "23.22.63.114",
+      "dest_ip": "192.168.250.70",
+      "src_port": null,
+      "dest_port": 80,
+      "user": "",
+      "host": "imreallynotbatman.com",
+      "action": "POST",
+      "raw_event": "23.22.63.114 - - \"POST /joomla/administrator/index.php?option=com_templates&task=template.apply HTTP/1.1\" 200 0",
+      "metadata": {
+        "http_method": "POST",
+        "uri": "/joomla/administrator/index.php?option=com_templates",
+        "status_code": 200,
+        "content_type": "multipart/form-data"
+      },
+      "scenario_id": "scenario_01_web_defacement"
+    },
+    {
+      "id": "eea93df5-d4d1-4778-bff2-9f8a89d9c09b",
+      "timestamp": "2024-08-10T14:22:05",
+      "source_type": "endpoint",
+      "src_ip": "192.168.250.70",
+      "dest_ip": "",
+      "src_port": null,
+      "dest_port": null,
+      "user": "",
+      "host": "imreallynotbatman.com",
+      "action": "process_create",
+      "raw_event": "Process Create: cmd.exe /c whoami, Parent: w3wp.exe, User: IUSR",
+      "metadata": {
+        "process_name": "cmd.exe",
+        "command_line": "cmd.exe /c whoami",
+        "parent_process": "w3wp.exe",
+        "user": "IUSR",
+        "event_id": 1
+      },
+      "scenario_id": "scenario_01_web_defacement"
+    },
+    {
+      "id": "27d141a3-8ed6-4f9b-9aa7-4212333b9ad4",
+      "timestamp": "2024-08-10T14:23:00",
+      "source_type": "webserver",
+      "src_ip": "23.22.63.114",
+      "dest_ip": "192.168.250.70",
+      "src_port": null,
+      "dest_port": 80,
+      "user": "",
+      "host": "imreallynotbatman.com",
+      "action": "POST",
+      "raw_event": "23.22.63.114 - - \"POST /joomla/administrator/index.php?option=com_templates&task=template.apply HTTP/1.1\" 200 0",
+      "metadata": {
+        "http_method": "POST",
+        "uri": "/joomla/administrator/index.php?option=com_templates",
+        "status_code": 200
+      },
+      "scenario_id": "scenario_01_web_defacement"
+    },
+    {
+      "id": "5f5d841a-1468-4b04-b832-721f748b5c10",
+      "timestamp": "2024-08-10T14:23:30",
+      "source_type": "ids",
+      "src_ip": "23.22.63.114",
+      "dest_ip": "192.168.250.70",
+      "src_port": null,
+      "dest_port": 80,
+      "user": "",
+      "host": "ids-01",
+      "action": "alert",
+      "raw_event": "[**] ET WEB_SERVER Web Shell Upload Attempt [**] 23.22.63.114 -> 192.168.250.70",
+      "metadata": {
+        "signature": "ET WEB_SERVER Web Shell Upload Attempt",
+        "severity": 1,
+        "category": "web-attack"
+      },
+      "scenario_id": "scenario_01_web_defacement"
+    }
+  ],
+  "correlations": [
+    {
+      "description": "Vulnerability scanning detected followed by process execution (1 endpoint events observed)",
+      "events": [],
+      "pattern": "reconnaissance_followed_by_execution",
+      "confidence": 0.9
+    },
+    {
+      "description": "Endpoint activity directly correlates with outbound network communication/IDS alert",
+      "events": [],
+      "pattern": "command_and_control_or_exfiltration",
+      "confidence": 0.9
+    }
+  ],
+  "threat_intel": [
+    {
+      "ioc_value": "23.22.63.114",
+      "ioc_type": "ipv4",
+      "reputation": "malicious",
+      "confidence": 0.95,
+      "tags": [
+        "web-scanner",
+        "acunetix",
+        "vulnerability-assessment"
+      ],
+      "source": "local_known_iocs",
+      "raw_response": {
+        "reputation": "malicious",
+        "confidence": 0.95,
+        "tags": [
+          "web-scanner",
+          "acunetix",
+          "vulnerability-assessment"
+        ],
+        "first_seen": "2024-08-10",
+        "description": "Source IP associée à un scan Acunetix ciblant imreallynotbatman.com",
+        "references": [
+          "BOTS v1 Scenario 100"
+        ]
+      }
+    },
+    {
+      "ioc_value": "192.168.250.70",
+      "ioc_type": "ipv4",
+      "reputation": "unknown",
+      "confidence": 0.0,
+      "tags": [],
+      "source": "none",
+      "raw_response": {}
+    }
+  ],
+  "severity_score": null,
+  "verdict": "true_positive",
+  "recommended_action": "contain",
+  "started_at": "2026-08-20T21:26:26.667705Z",
+  "completed_at": "2026-08-20T21:26:26.671606Z"
+}

@@ -340,7 +340,7 @@ def generate_scenario_03_ransomware() -> tuple[list[dict], dict]:
             raw_event=f"Process Create: E:\\invoice_aug2024.exe, Parent: explorer.exe, User: {user}",
             metadata={"process_name": "invoice_aug2024.exe", "command_line": "E:\\invoice_aug2024.exe",
                        "parent_process": "explorer.exe", "event_id": 1,
-                       "file_hash_sha256": "d41d8cd98f00b204e9800998ecf8427e2b3f68c1a8e5d7c9"},
+                       "file_hash_sha256": "d41d8cd98f00b204e9800998ecf8427e2b3f68c1a8e5d7c933b9f4e2460b13d6"},
         ),
         # Processus enfant suspect
         _event(

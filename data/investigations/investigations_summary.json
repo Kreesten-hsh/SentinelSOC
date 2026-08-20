@@ -1,0 +1,86 @@
+{
+  "generated_at": "2026-08-20T21:26:26.722538+00:00",
+  "total_alerts": 8,
+  "results": [
+    {
+      "alert_id": "ALT-2024-001",
+      "title": "Web Vulnerability Scanner Detected \u2014 imreallynotbatman.com",
+      "scenario": "scenario_01_web_defacement",
+      "verdict": "TRUE_POSITIVE",
+      "action": "CONTAIN",
+      "iocs_extracted": 2,
+      "events_correlated": 14,
+      "trace_file": "data/investigations/ALT-2024-001_investigation.json"
+    },
+    {
+      "alert_id": "ALT-2024-002",
+      "title": "Multiple Failed Login Attempts \u2014 srv-dc01",
+      "scenario": "scenario_02_brute_force",
+      "verdict": "TRUE_POSITIVE",
+      "action": "CONTAIN",
+      "iocs_extracted": 2,
+      "events_correlated": 33,
+      "trace_file": "data/investigations/ALT-2024-002_investigation.json"
+    },
+    {
+      "alert_id": "ALT-2024-003",
+      "title": "Cerber Ransomware C2 Communication Detected \u2014 ws-bobsmith",
+      "scenario": "scenario_03_ransomware",
+      "verdict": "TRUE_POSITIVE",
+      "action": "CONTAIN",
+      "iocs_extracted": 4,
+      "events_correlated": 8,
+      "trace_file": "data/investigations/ALT-2024-003_investigation.json"
+    },
+    {
+      "alert_id": "ALT-2024-004",
+      "title": "Large Outbound Data Transfer \u2014 ws-jdoe to External IP",
+      "scenario": "scenario_04_data_exfiltration",
+      "verdict": "TRUE_POSITIVE",
+      "action": "CONTAIN",
+      "iocs_extracted": 4,
+      "events_correlated": 7,
+      "trace_file": "data/investigations/ALT-2024-004_investigation.json"
+    },
+    {
+      "alert_id": "ALT-2024-005",
+      "title": "Internal Network Port Scan Detected \u2014 10.0.0.88",
+      "scenario": "scenario_05_reconnaissance",
+      "verdict": "SUSPICIOUS",
+      "action": "MONITOR",
+      "iocs_extracted": 2,
+      "events_correlated": 29,
+      "trace_file": "data/investigations/ALT-2024-005_investigation.json"
+    },
+    {
+      "alert_id": "ALT-2024-006",
+      "title": "Suspicious PowerShell Execution \u2014 srv-dc01",
+      "scenario": "scenario_06_false_positive",
+      "verdict": "FALSE_POSITIVE",
+      "action": "IGNORE",
+      "iocs_extracted": 2,
+      "events_correlated": 4,
+      "trace_file": "data/investigations/ALT-2024-006_investigation.json"
+    },
+    {
+      "alert_id": "ALT-2024-007",
+      "title": "PsExec Remote Execution Detected \u2014 ws-bobsmith \u2192 srv-dc01",
+      "scenario": "scenario_07_ambiguous_lateral",
+      "verdict": "SUSPICIOUS",
+      "action": "ESCALATE",
+      "iocs_extracted": 5,
+      "events_correlated": 7,
+      "trace_file": "data/investigations/ALT-2024-007_investigation.json"
+    },
+    {
+      "alert_id": "ALT-2024-008",
+      "title": "Multiple Failed OWA Logins from Single External IP",
+      "scenario": "scenario_08_credential_stuffing",
+      "verdict": "TRUE_POSITIVE",
+      "action": "CONTAIN",
+      "iocs_extracted": 2,
+      "events_correlated": 29,
+      "trace_file": "data/investigations/ALT-2024-008_investigation.json"
+    }
+  ]
+}

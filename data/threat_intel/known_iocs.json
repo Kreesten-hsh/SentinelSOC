@@ -57,7 +57,7 @@
     }
   },
   "malicious_hashes": {
-    "d41d8cd98f00b204e9800998ecf8427e2b3f68c1a8e5d7c9": {
+    "d41d8cd98f00b204e9800998ecf8427e2b3f68c1a8e5d7c933b9f4e2460b13d6": {
       "type": "sha256",
       "reputation": "malicious",
       "confidence": 0.97,

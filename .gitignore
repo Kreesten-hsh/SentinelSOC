@@ -1,0 +1,48 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+dist/
+build/
+.eggs/
+*.egg
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Environment
+.env
+
+# Data (large files)
+data/raw/
+data/cicids2017/
+*.tgz
+*.gz
+!data/threat_intel/
+!data/alerts/
+!data/scenarios/
+
+# ML models
+models/*.joblib
+models/*.pkl
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Coverage
+.coverage
+htmlcov/
+
+# Misc
+*.log

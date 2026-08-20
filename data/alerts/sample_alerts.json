@@ -1,0 +1,156 @@
+[
+  {
+    "id": "ALT-2024-001",
+    "timestamp": "2024-08-10T14:20:01",
+    "source": "Suricata IDS",
+    "title": "Web Vulnerability Scanner Detected \u2014 imreallynotbatman.com",
+    "description": "Suricata alerted on traffic matching 'ET SCAN Acunetix Web Vulnerability Scanner' from 23.22.63.114 targeting 192.168.250.70 (imreallynotbatman.com) on port 80. Multiple HTTP requests observed in rapid succession.",
+    "raw_data": {
+      "src_ip": "23.22.63.114",
+      "dest_ip": "192.168.250.70",
+      "dest_port": 80,
+      "signature": "ET SCAN Acunetix Web Vulnerability Scanner",
+      "severity": 2,
+      "timestamp": "2024-08-10T14:20:00"
+    },
+    "status": "pending",
+    "severity": null,
+    "scenario_id": "scenario_01_web_defacement"
+  },
+  {
+    "id": "ALT-2024-002",
+    "timestamp": "2024-08-11T03:16:00",
+    "source": "Windows Event Log",
+    "title": "Multiple Failed Login Attempts \u2014 srv-dc01",
+    "description": "15 failed SSH login attempts detected from 40.80.148.42 targeting srv-dc01 (192.168.250.50) within 3 minutes. Multiple usernames attempted: admin, root, administrator. Pattern consistent with brute force attack.",
+    "raw_data": {
+      "src_ip": "40.80.148.42",
+      "dest_ip": "192.168.250.50",
+      "dest_port": 22,
+      "event_id": 4625,
+      "failure_count": 15,
+      "time_window_seconds": 180,
+      "timestamp": "2024-08-11T03:15:00"
+    },
+    "status": "pending",
+    "severity": null,
+    "scenario_id": "scenario_02_brute_force"
+  },
+  {
+    "id": "ALT-2024-003",
+    "timestamp": "2024-08-12T09:46:20",
+    "source": "Suricata IDS",
+    "title": "Cerber Ransomware C2 Communication Detected \u2014 ws-bobsmith",
+    "description": "Suricata detected outbound traffic matching 'ET MALWARE Cerber Ransomware CnC Beacon' from 192.168.250.100 (ws-bobsmith) to external IP 185.141.27.88 on port 443. User WAYNE\\bob.smith was logged in at the time of the alert.",
+    "raw_data": {
+      "src_ip": "192.168.250.100",
+      "dest_ip": "185.141.27.88",
+      "dest_port": 443,
+      "signature": "ET MALWARE Cerber Ransomware CnC Beacon",
+      "severity": 1,
+      "host": "ws-bobsmith",
+      "user": "WAYNE\\bob.smith",
+      "timestamp": "2024-08-12T09:46:20"
+    },
+    "status": "pending",
+    "severity": null,
+    "scenario_id": "scenario_03_ransomware"
+  },
+  {
+    "id": "ALT-2024-004",
+    "timestamp": "2024-08-13T22:42:00",
+    "source": "Fortinet Firewall",
+    "title": "Large Outbound Data Transfer \u2014 ws-jdoe to External IP",
+    "description": "Firewall detected an unusually large outbound transfer (~48.5 MB) from 192.168.250.120 (ws-jdoe) to external IP 91.234.99.42 on port 443. Transfer occurred at 22:42 (after business hours). User WAYNE\\j.doe was logged in.",
+    "raw_data": {
+      "src_ip": "192.168.250.120",
+      "dest_ip": "91.234.99.42",
+      "dest_port": 443,
+      "bytes_sent": 48500000,
+      "host": "ws-jdoe",
+      "user": "WAYNE\\j.doe",
+      "timestamp": "2024-08-13T22:42:00"
+    },
+    "status": "pending",
+    "severity": null,
+    "scenario_id": "scenario_04_data_exfiltration"
+  },
+  {
+    "id": "ALT-2024-005",
+    "timestamp": "2024-08-14T11:00:30",
+    "source": "Suricata IDS",
+    "title": "Internal Network Port Scan Detected \u2014 10.0.0.88",
+    "description": "Suricata detected Nmap scanning activity from internal IP 10.0.0.88. Connections observed to 4 hosts across 7 ports within a 30-second window. Source is an internal workstation.",
+    "raw_data": {
+      "src_ip": "10.0.0.88",
+      "dest_network": "192.168.250.0/24",
+      "signature": "ET SCAN Nmap Scripting Engine User-Agent Detected",
+      "unique_destinations": 4,
+      "unique_ports": 7,
+      "timestamp": "2024-08-14T11:00:00"
+    },
+    "status": "pending",
+    "severity": null,
+    "scenario_id": "scenario_05_reconnaissance"
+  },
+  {
+    "id": "ALT-2024-006",
+    "timestamp": "2024-08-15T10:02:00",
+    "source": "Sysmon",
+    "title": "Suspicious PowerShell Execution \u2014 srv-dc01",
+    "description": "Sysmon detected PowerShell execution with '-ExecutionPolicy Bypass' on srv-dc01 (192.168.250.50). Process launched by WAYNE\\sysadmin.jones. ExecutionPolicy Bypass is commonly used by attackers to evade script controls.",
+    "raw_data": {
+      "host": "srv-dc01",
+      "user": "WAYNE\\sysadmin.jones",
+      "process": "powershell.exe",
+      "command_line": "powershell.exe -ExecutionPolicy Bypass -File C:\\Scripts\\Update-ADGroupPolicy.ps1",
+      "parent_process": "services.exe",
+      "event_id": 1,
+      "timestamp": "2024-08-15T10:02:00"
+    },
+    "status": "pending",
+    "severity": null,
+    "scenario_id": "scenario_06_false_positive"
+  },
+  {
+    "id": "ALT-2024-007",
+    "timestamp": "2024-08-16T15:35:00",
+    "source": "Sysmon",
+    "title": "PsExec Remote Execution Detected \u2014 ws-bobsmith \u2192 srv-dc01",
+    "description": "Sysmon detected PsExec execution from ws-bobsmith (192.168.250.100) targeting srv-dc01 (192.168.250.50). PsExec is a legitimate admin tool but is also commonly used for lateral movement. User WAYNE\\bob.smith initiated the connection.",
+    "raw_data": {
+      "src_ip": "192.168.250.100",
+      "dest_ip": "192.168.250.50",
+      "host": "ws-bobsmith",
+      "user": "WAYNE\\bob.smith",
+      "process": "PsExec.exe",
+      "command_line": "PsExec.exe \\\\srv-dc01 cmd.exe",
+      "timestamp": "2024-08-16T15:35:00"
+    },
+    "status": "pending",
+    "severity": null,
+    "scenario_id": "scenario_07_ambiguous_lateral"
+  },
+  {
+    "id": "ALT-2024-008",
+    "timestamp": "2024-08-17T07:00:30",
+    "source": "Windows Event Log",
+    "title": "Multiple Failed OWA Logins from Single External IP",
+    "description": "12 failed authentication attempts detected against Outlook Web Access (webmail.wayne-enterprises.com) from external IP 198.71.247.91 within 1 minute. Different usernames targeted with unique passwords \u2014 pattern consistent with credential stuffing (not brute force).",
+    "raw_data": {
+      "src_ip": "198.71.247.91",
+      "dest_ip": "192.168.250.70",
+      "dest_port": 443,
+      "event_id": 4625,
+      "unique_users_targeted": 12,
+      "failure_count": 12,
+      "success_count": 2,
+      "time_window_seconds": 60,
+      "service": "OWA",
+      "timestamp": "2024-08-17T07:00:30"
+    },
+    "status": "pending",
+    "severity": null,
+    "scenario_id": "scenario_08_credential_stuffing"
+  }
+]

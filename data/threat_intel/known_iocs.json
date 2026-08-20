@@ -1,0 +1,102 @@
+{
+  "metadata": {
+    "description": "IOCs connus extraits des scénarios BOTS v1 (Boss of the SOC). Base locale de threat intelligence pour le mode offline de SentinelSOC.",
+    "last_updated": "2024-08-20",
+    "source": "Splunk BOTS v1 documented attack patterns + public threat feeds",
+    "total_indicators": 12,
+    "disclaimer": "Base synthétique pour démonstration — ne pas utiliser comme source de threat intel en production."
+  },
+  "malicious_ips": {
+    "23.22.63.114": {
+      "reputation": "malicious",
+      "confidence": 0.95,
+      "tags": ["web-scanner", "acunetix", "vulnerability-assessment"],
+      "first_seen": "2024-08-10",
+      "description": "Source IP associée à un scan Acunetix ciblant imreallynotbatman.com",
+      "references": ["BOTS v1 Scenario 100"]
+    },
+    "40.80.148.42": {
+      "reputation": "malicious",
+      "confidence": 0.99,
+      "tags": ["apt", "brute-force", "po1s0n1vy"],
+      "first_seen": "2024-08-11",
+      "description": "IP associée au groupe hacktiviste po1s0n1vy — brute force SSH",
+      "references": ["BOTS v1 po1s0n1vy campaign"]
+    },
+    "185.141.27.88": {
+      "reputation": "malicious",
+      "confidence": 0.98,
+      "tags": ["c2", "ransomware", "cerber"],
+      "first_seen": "2024-08-12",
+      "description": "Serveur C2 du ransomware Cerber — communication beacon détectée",
+      "references": ["BOTS v1 Ransomware scenario", "ET MALWARE Cerber Ransomware CnC"]
+    },
+    "91.234.99.42": {
+      "reputation": "malicious",
+      "confidence": 0.90,
+      "tags": ["exfiltration", "data-theft", "drop-server"],
+      "first_seen": "2024-08-13",
+      "description": "Serveur de dépôt utilisé pour l'exfiltration de données",
+      "references": ["BOTS v1 Data exfiltration scenario"]
+    },
+    "198.71.247.91": {
+      "reputation": "malicious",
+      "confidence": 0.92,
+      "tags": ["credential-stuffing", "brute-force", "webmail-attack"],
+      "first_seen": "2024-08-17",
+      "description": "Source de credential stuffing contre OWA (Outlook Web Access)",
+      "references": ["Credential stuffing campaign"]
+    },
+    "10.0.0.88": {
+      "reputation": "unknown",
+      "confidence": 0.30,
+      "tags": ["internal", "scanning"],
+      "first_seen": "2024-08-14",
+      "description": "IP interne — activité de scanning détectée, potentiellement légitime (IT audit) ou compromis",
+      "references": []
+    }
+  },
+  "malicious_hashes": {
+    "d41d8cd98f00b204e9800998ecf8427e2b3f68c1a8e5d7c9": {
+      "type": "sha256",
+      "reputation": "malicious",
+      "confidence": 0.97,
+      "tags": ["ransomware", "cerber", "trojan"],
+      "file_name": "invoice_aug2024.exe",
+      "description": "Payload Cerber ransomware déposé via USB",
+      "references": ["BOTS v1 Ransomware scenario"]
+    }
+  },
+  "malicious_domains": {
+    "dropzone-files.xyz": {
+      "reputation": "malicious",
+      "confidence": 0.88,
+      "tags": ["exfiltration", "drop-site"],
+      "resolved_ips": ["91.234.99.42"],
+      "description": "Domaine utilisé comme serveur de dépôt pour données exfiltrées",
+      "references": ["Data exfiltration scenario"]
+    },
+    "evil.com": {
+      "reputation": "malicious",
+      "confidence": 0.95,
+      "tags": ["malware-distribution", "backdoor"],
+      "resolved_ips": ["203.0.113.50"],
+      "description": "Domaine servant du malware (backdoor.sh)",
+      "references": ["BOTS v1 post-exploitation"]
+    }
+  },
+  "clean_ips": {
+    "192.168.250.10": {
+      "reputation": "clean",
+      "confidence": 0.99,
+      "tags": ["internal", "dns-server"],
+      "description": "Serveur DNS interne Wayne Enterprises"
+    },
+    "192.168.250.50": {
+      "reputation": "clean",
+      "confidence": 0.99,
+      "tags": ["internal", "domain-controller"],
+      "description": "Contrôleur de domaine Active Directory (srv-dc01)"
+    }
+  }
+}

@@ -1,0 +1,153 @@
+{
+  "version": "1.0.0",
+  "description": "Ground truth verdicts and analytical baselines for the 8 SentinelSOC investigation scenarios. Used exclusively for post-hoc automated and human evaluation, never loaded into agent tools.",
+  "scenarios": {
+    "scenario_01_web_defacement": {
+      "alert_id": "ALT-2024-001",
+      "expected_verdict": "true_positive",
+      "expected_severity": "critical",
+      "recommended_action": "contain",
+      "attack_chain": [
+        "Reconnaissance (Acunetix vulnerability scan)",
+        "Web Authentication Brute Force (/joomla/administrator/index.php)",
+        "Exploitation & Web Shell Injection (Joomla template editor abuse)",
+        "Post-Exploitation Execution (cmd.exe /c whoami via w3wp.exe)",
+        "Web Defacement (Replacement of site index)"
+      ],
+      "key_iocs": {
+        "attacker_ips": ["23.22.63.114"],
+        "target_ips": ["192.168.250.70"],
+        "target_hosts": ["imreallynotbatman.com"]
+      },
+      "justification": "Clear malicious progression matching the po1s0n1vy web attack campaign in Splunk BOTS v1. Multiple correlating log sources (Suricata IDS, Web Server, Sysmon Endpoint) confirm initial probe turned into administrative takeover and webshell execution."
+    },
+    "scenario_02_brute_force": {
+      "alert_id": "ALT-2024-002",
+      "expected_verdict": "true_positive",
+      "expected_severity": "critical",
+      "recommended_action": "contain",
+      "attack_chain": [
+        "Network Ingress (Port 22 SSH connection)",
+        "Credential Guessing (15 rapid failed auth attempts, Event ID 4625)",
+        "Successful Authentication (Event ID 4624 for user 'admin')",
+        "Post-Compromise Activity (/bin/bash reading /etc/shadow, wget backdoor download)"
+      ],
+      "key_iocs": {
+        "attacker_ips": ["40.80.148.42"],
+        "target_ips": ["192.168.250.50"],
+        "target_hosts": ["srv-dc01"]
+      },
+      "justification": "Classic SSH dictionary brute force followed immediately by successful logon from the same source IP, then immediate privileged reconnaissance and staging commands on the server."
+    },
+    "scenario_03_ransomware": {
+      "alert_id": "ALT-2024-003",
+      "expected_verdict": "true_positive",
+      "expected_severity": "critical",
+      "recommended_action": "contain",
+      "attack_chain": [
+        "Initial Access (Physical USB storage insertion, Event ID 6416)",
+        "Payload Execution (invoice_aug2024.exe)",
+        "Defense Evasion & Anti-Recovery (vssadmin delete shadows /all /quiet)",
+        "Command and Control (Cerber C2 beaconing to 185.141.27.88:443)",
+        "Impact (Mass file modification to .cerber, ransom note dropped)"
+      ],
+      "key_iocs": {
+        "c2_ips": ["185.141.27.88"],
+        "file_hashes": ["d41d8cd98f00b204e9800998ecf8427e2b3f68c1a8e5d7c9"],
+        "victim_hosts": ["ws-bobsmith"],
+        "victim_users": ["WAYNE\\bob.smith"]
+      },
+      "justification": "Unambiguous ransomware infection lifecycle matching Cerber USB scenario in BOTS v1. Correlation of USB insertion, shadow copy deletion, IDS C2 alert, and rapid mass file renaming."
+    },
+    "scenario_04_data_exfiltration": {
+      "alert_id": "ALT-2024-004",
+      "expected_verdict": "true_positive",
+      "expected_severity": "critical",
+      "recommended_action": "contain",
+      "attack_chain": [
+        "Anomalous Access (After-hours logon at 22:30)",
+        "Collection (Access to confidential finance and restricted HR shares, Event ID 4663)",
+        "Archive Staging (7z compression into C:\\Temp\\backup.7z)",
+        "Exfiltration (Large outbound HTTPS stream ~48.5MB to external drop IP 91.234.99.42)",
+        "DNS Resolution (dropzone-files.xyz)"
+      ],
+      "key_iocs": {
+        "exfil_ips": ["91.234.99.42"],
+        "exfil_domains": ["dropzone-files.xyz"],
+        "insider_hosts": ["ws-jdoe"],
+        "insider_users": ["WAYNE\\j.doe"]
+      },
+      "justification": "Insider threat / data exfiltration pattern. Temporal correlation of unauthorized sensitive file access, local archiving, and immediate large volume transfer to an external IP matching a known drop domain."
+    },
+    "scenario_05_reconnaissance": {
+      "alert_id": "ALT-2024-005",
+      "expected_verdict": "suspicious",
+      "expected_severity": "medium",
+      "recommended_action": "monitor",
+      "attack_chain": [
+        "Network Scanning (TCP SYN/Connect scanning across multiple internal hosts and ports)",
+        "IDS Detection (Nmap Scripting Engine signature)"
+      ],
+      "key_iocs": {
+        "scanner_ips": ["10.0.0.88"],
+        "target_subnets": ["192.168.250.0/24"]
+      },
+      "justification": "Reconnaissance activity detected from an internal IP address without subsequent exploitation or lateral movement. Could represent rogue internal scanning, compromised host, or unannounced internal audit/vulnerability assessment."
+    },
+    "scenario_06_false_positive": {
+      "alert_id": "ALT-2024-006",
+      "expected_verdict": "false_positive",
+      "expected_severity": "low",
+      "recommended_action": "ignore",
+      "attack_chain": [
+        "Legitimate Admin Logon (Event ID 4624 during working hours by sysadmin.jones)",
+        "Task Scheduler Execution (Weekly-AD-Maintenance scheduled task, Event ID 106)",
+        "PowerShell Execution (AD Group Policy update script)",
+        "Standard AD Replication Network Traffic (LDAP Port 389 to broadcast/domain controller)"
+      ],
+      "key_iocs": {
+        "admin_ips": ["192.168.250.10"],
+        "server_hosts": ["srv-dc01"],
+        "admin_users": ["WAYNE\\sysadmin.jones"]
+      },
+      "justification": "False Positive. Although the alert flagged PowerShell ExecutionPolicy Bypass, log correlation reveals execution was initiated by a recurring Task Scheduler job ('Weekly-AD-Maintenance') during business hours by an authorized domain admin, accompanied exclusively by normal LDAP directory replication."
+    },
+    "scenario_07_ambiguous_lateral": {
+      "alert_id": "ALT-2024-007",
+      "expected_verdict": "suspicious",
+      "expected_severity": "medium",
+      "recommended_action": "escalate",
+      "attack_chain": [
+        "Workstation Logon (bob.smith on ws-bobsmith)",
+        "Remote Admin Tool Invocation (PsExec to srv-dc01)",
+        "Domain Discovery (net user /domain)",
+        "File Share Access (43 files accessed on srv-fileserver)"
+      ],
+      "key_iocs": {
+        "source_hosts": ["ws-bobsmith"],
+        "source_ips": ["192.168.250.100"],
+        "target_hosts": ["srv-dc01", "srv-fileserver"],
+        "users": ["WAYNE\\bob.smith"]
+      },
+      "justification": "Ambiguous event sequence. Dual-use administrative tools (PsExec) and domain enumeration commands executed by a standard user account across multiple core servers. Requires analyst confirmation with account owner to determine if it is sanctioned IT support activity or active lateral movement by an adversary using stolen credentials."
+    },
+    "scenario_08_credential_stuffing": {
+      "alert_id": "ALT-2024-008",
+      "expected_verdict": "true_positive",
+      "expected_severity": "critical",
+      "recommended_action": "contain",
+      "attack_chain": [
+        "Distributed Account Testing (12 different usernames attempted in rapid succession from a single IP)",
+        "Failed Logons (10 failed authentications with bad passwords)",
+        "Account Compromise (2 successful authentications for lucius.fox and barbara.gordon)",
+        "Unauthorized Mailbox Access (Inbox access via OWA)"
+      ],
+      "key_iocs": {
+        "attacker_ips": ["198.71.247.91"],
+        "targeted_hosts": ["webmail.wayne-enterprises.com"],
+        "compromised_users": ["WAYNE\\lucius.fox", "WAYNE\\barbara.gordon"]
+      },
+      "justification": "Credential stuffing campaign. A single external IP tested a list of corporate usernames with varied leaked credentials, successfully accessing mailboxes for two accounts. Immediate password resets and session terminations required."
+    }
+  }
+}

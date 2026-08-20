@@ -156,7 +156,7 @@ def generate_scenario_01_web_defacement() -> tuple[list[dict], dict]:
             action="POST", host=target_host,
             raw_event=f'{attacker_ip} - - "POST /joomla/administrator/index.php HTTP/1.1" 200 12456',
             metadata={"http_method": "POST", "uri": "/joomla/administrator/index.php", "status_code": 200,
-                       "form_data": "username=admin&passwd=batman&task=login", "login_success": True},
+                       "form_data": "username=admin&passwd=batman&task=login"},
         ),
         _event(
             _ts(base, 1, 10), LogSourceType.IDS, sid,
@@ -173,8 +173,7 @@ def generate_scenario_01_web_defacement() -> tuple[list[dict], dict]:
             action="POST", host=target_host,
             raw_event=f'{attacker_ip} - - "POST /joomla/administrator/index.php?option=com_templates&task=template.apply HTTP/1.1" 200 0',
             metadata={"http_method": "POST", "uri": "/joomla/administrator/index.php?option=com_templates",
-                       "status_code": 200, "content_type": "multipart/form-data",
-                       "description": "Template modification — webshell injection"},
+                       "status_code": 200, "content_type": "multipart/form-data"},
         ),
         _event(
             _ts(base, 2, 5), LogSourceType.ENDPOINT, sid,
@@ -192,7 +191,7 @@ def generate_scenario_01_web_defacement() -> tuple[list[dict], dict]:
             action="POST", host=target_host,
             raw_event=f'{attacker_ip} - - "POST /joomla/administrator/index.php?option=com_templates&task=template.apply HTTP/1.1" 200 0',
             metadata={"http_method": "POST", "uri": "/joomla/administrator/index.php?option=com_templates",
-                       "status_code": 200, "description": "Index page replacement — defacement content uploaded"},
+                       "status_code": 200},
         ),
         _event(
             _ts(base, 3, 30), LogSourceType.IDS, sid,
@@ -249,7 +248,7 @@ def generate_scenario_02_brute_force() -> tuple[list[dict], dict]:
             host=target_host, action="login_failed",
             raw_event=f"sshd[{2100+i}]: Failed password for {'admin' if i%3==0 else 'root' if i%3==1 else 'administrator'} from {attacker_ip} port {50000+i} ssh2",
             metadata={"event_id": 4625, "logon_type": 10, "failure_reason": "bad_password",
-                       "service": "sshd", "attempt_number": i + 1},
+                       "service": "sshd"},
         ))
         events.append(_event(
             _ts(base, 0, i * 12), LogSourceType.FIREWALL, sid,
@@ -360,8 +359,7 @@ def generate_scenario_03_ransomware() -> tuple[list[dict], dict]:
             raw_event=f"Process Create: vssadmin.exe delete shadows /all /quiet, Parent: cmd.exe",
             metadata={"process_name": "vssadmin.exe",
                        "command_line": "vssadmin delete shadows /all /quiet",
-                       "parent_process": "cmd.exe", "event_id": 1,
-                       "description": "Shadow copy deletion — anti-recovery technique"},
+                       "parent_process": "cmd.exe", "event_id": 1},
         ),
         # Connexion C2
         _event(
@@ -395,8 +393,7 @@ def generate_scenario_03_ransomware() -> tuple[list[dict], dict]:
             action="file_create",
             raw_event="File Create: C:\\Users\\bob.smith\\Desktop\\_README_.hta, Process: invoice_aug2024.exe",
             metadata={"event_id": 11, "file_name": "_README_.hta",
-                       "file_path": "C:\\Users\\bob.smith\\Desktop\\_README_.hta",
-                       "description": "Cerber ransom note created"},
+                       "file_path": "C:\\Users\\bob.smith\\Desktop\\_README_.hta"},
         ),
     ]
 
@@ -445,8 +442,7 @@ def generate_scenario_04_data_exfiltration() -> tuple[list[dict], dict]:
             src_ip=insider_ip, user=user, host=insider_host,
             action="login_success",
             raw_event=f"An account was successfully logged on. User: {user}, Workstation: {insider_host}, LogonType: 2",
-            metadata={"event_id": 4624, "logon_type": 2, "time_of_day": "22:30",
-                       "is_after_hours": True},
+            metadata={"event_id": 4624, "logon_type": 2},
         ),
         # Accès à des fichiers sensibles
         _event(
@@ -455,7 +451,7 @@ def generate_scenario_04_data_exfiltration() -> tuple[list[dict], dict]:
             action="file_access",
             raw_event=f"File access: \\\\fileserver\\finance\\Q3_2024_financials.xlsx, User: {user}, Access: Read",
             metadata={"event_id": 4663, "file_path": "\\\\fileserver\\finance\\Q3_2024_financials.xlsx",
-                       "access_type": "read", "file_classification": "confidential"},
+                       "access_type": "read"},
         ),
         _event(
             _ts(base, 6, 0), LogSourceType.ENDPOINT, sid,
@@ -463,7 +459,7 @@ def generate_scenario_04_data_exfiltration() -> tuple[list[dict], dict]:
             action="file_access",
             raw_event=f"File access: \\\\fileserver\\hr\\employee_salaries_2024.csv, User: {user}, Access: Read",
             metadata={"event_id": 4663, "file_path": "\\\\fileserver\\hr\\employee_salaries_2024.csv",
-                       "access_type": "read", "file_classification": "restricted"},
+                       "access_type": "read"},
         ),
         # Compression des données
         _event(
@@ -482,7 +478,7 @@ def generate_scenario_04_data_exfiltration() -> tuple[list[dict], dict]:
             action="allow", host="fw-01",
             raw_event=f"id=firewall action=allow srcip={insider_ip} dstip={exfil_ip} dstport=443 bytes_sent=48500000",
             metadata={"protocol": "tcp", "bytes_sent": 48_500_000, "bytes_received": 12000,
-                       "session_duration": 180, "description": "Large outbound transfer"},
+                       "session_duration": 180},
         ),
         _event(
             _ts(base, 12, 0), LogSourceType.IDS, sid,
@@ -500,7 +496,7 @@ def generate_scenario_04_data_exfiltration() -> tuple[list[dict], dict]:
             host=insider_host, action="dns_query",
             raw_event=f"DNS query: dropzone-files.xyz -> {exfil_ip}, Type: A, Client: {insider_ip}",
             metadata={"query": "dropzone-files.xyz", "query_type": "A",
-                       "answer": exfil_ip, "description": "Suspicious domain resolution"},
+                       "answer": exfil_ip},
         ),
     ]
 
@@ -611,10 +607,9 @@ def generate_scenario_06_false_positive() -> tuple[list[dict], dict]:
             src_ip=admin_ip, dest_ip=server_ip, user=user, host=server_host,
             action="login_success",
             raw_event=f"An account was successfully logged on. User: {user}, Workstation: {admin_host}, LogonType: 3",
-            metadata={"event_id": 4624, "logon_type": 3, "is_after_hours": False,
-                       "user_role": "sysadmin", "scheduled_maintenance": True},
+            metadata={"event_id": 4624, "logon_type": 3, "logon_process": "Kerberos"},
         ),
-        # PowerShell — mais c'est une maintenance planifiée
+        # PowerShell — tâche de maintenance de routine
         _event(
             _ts(base, 2, 0), LogSourceType.ENDPOINT, sid,
             host=server_host, user=user,
@@ -622,26 +617,25 @@ def generate_scenario_06_false_positive() -> tuple[list[dict], dict]:
             raw_event=f"Process Create: powershell.exe -ExecutionPolicy Bypass -File C:\\Scripts\\Update-ADGroupPolicy.ps1, User: {user}",
             metadata={"process_name": "powershell.exe",
                        "command_line": "powershell.exe -ExecutionPolicy Bypass -File C:\\Scripts\\Update-ADGroupPolicy.ps1",
-                       "parent_process": "services.exe", "event_id": 1,
-                       "script_description": "Scheduled AD Group Policy update script"},
+                       "parent_process": "services.exe", "event_id": 1},
         ),
-        # Plusieurs connexions réseau (normal pour un DC pendant une mise à jour)
+        # Plusieurs connexions réseau (DC vers réseau local)
         _event(
             _ts(base, 3, 0), LogSourceType.FIREWALL, sid,
             src_ip=server_ip, dest_ip="192.168.250.255", src_port=389, dest_port=389,
             action="allow", host="fw-01",
             raw_event=f"id=firewall action=allow srcip={server_ip} dstip=192.168.250.255 dstport=389 proto=tcp",
             metadata={"protocol": "tcp", "bytes_sent": 4500, "bytes_received": 3200,
-                       "service": "LDAP", "description": "AD replication traffic"},
+                       "service": "LDAP"},
         ),
-        # Event log montrant la tâche planifiée
+        # Event log Task Scheduler
         _event(
             _ts(base, 0, -60), LogSourceType.ENDPOINT, sid,
             host=server_host, user="SYSTEM",
             action="scheduled_task",
             raw_event="Task Scheduler: Task 'Weekly-AD-Maintenance' started, User: SYSTEM",
             metadata={"event_id": 106, "task_name": "Weekly-AD-Maintenance",
-                       "scheduled_by": user, "recurrence": "weekly"},
+                       "user_name": user},
         ),
     ]
 
@@ -702,8 +696,7 @@ def generate_scenario_07_ambiguous_lateral() -> tuple[list[dict], dict]:
             raw_event=f"Process Create: PsExec.exe \\\\{target1_host} cmd.exe, User: {user}",
             metadata={"process_name": "PsExec.exe",
                        "command_line": f"PsExec.exe \\\\{target1_host} cmd.exe",
-                       "parent_process": "explorer.exe", "event_id": 1,
-                       "description": "PsExec remote execution — admin tool or lateral movement?"},
+                       "parent_process": "explorer.exe", "event_id": 1},
         ),
         _event(
             _ts(base, 5, 5), LogSourceType.AUTH, sid,
@@ -727,8 +720,7 @@ def generate_scenario_07_ambiguous_lateral() -> tuple[list[dict], dict]:
             action="process_create",
             raw_event=f"Process Create: cmd.exe /c net user /domain, Parent: PSEXESVC.exe, User: {user}",
             metadata={"process_name": "cmd.exe", "command_line": "net user /domain",
-                       "parent_process": "PSEXESVC.exe", "event_id": 1,
-                       "description": "Domain user enumeration"},
+                       "parent_process": "PSEXESVC.exe", "event_id": 1},
         ),
         # Mouvement vers le file server
         _event(
@@ -800,7 +792,7 @@ def generate_scenario_08_credential_stuffing() -> tuple[list[dict], dict]:
             action="POST", host=target_host,
             raw_event=f'{attacker_ip} - - "POST /owa/auth.owa HTTP/1.1" 401 0',
             metadata={"http_method": "POST", "uri": "/owa/auth.owa", "status_code": 401,
-                       "form_data": f"username={username}&password=leaked_pass_{i}", "login_success": False},
+                       "form_data": f"username={username}&password=leaked_pass_{i}"},
         ))
         events.append(_event(
             _ts(base, 0, i * 5), LogSourceType.AUTH, sid,
@@ -827,8 +819,7 @@ def generate_scenario_08_credential_stuffing() -> tuple[list[dict], dict]:
             src_ip=attacker_ip, dest_ip=target_ip, dest_port=443,
             action="GET", host=target_host,
             raw_event=f'{attacker_ip} - {username} "GET /owa/inbox HTTP/1.1" 200 34521',
-            metadata={"http_method": "GET", "uri": "/owa/inbox", "status_code": 200,
-                       "description": "Mailbox access after successful credential stuffing"},
+            metadata={"http_method": "GET", "uri": "/owa/inbox", "status_code": 200},
         ))
 
     # Firewall — beaucoup de connexions courtes

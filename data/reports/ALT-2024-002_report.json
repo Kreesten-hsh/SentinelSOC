@@ -1,0 +1,243 @@
+{
+  "alert_id": "ALT-2024-002",
+  "title": "Investigation Report — Multiple Failed Login Attempts — srv-dc01",
+  "executive_summary": "L'investigation de l'alerte **Multiple Failed Login Attempts — srv-dc01** a confirmé une menace réelle (sévérité **CRITICAL**, score 79/100). Les patterns d'attaque identifiés incluent : brute_force_followed_by_success. Les indicateurs malveillants confirmés : `40.80.148.42`. **Action immédiate requise : CONTAIN.**",
+  "alert_info": {
+    "id": "ALT-2024-002",
+    "timestamp": "2024-08-11T03:16:00",
+    "source": "Windows Event Log",
+    "title": "Multiple Failed Login Attempts — srv-dc01"
+  },
+  "iocs_extracted": [
+    {
+      "type": "ipv4",
+      "value": "40.80.148.42",
+      "context": "alert_ALT-2024-002"
+    },
+    {
+      "type": "ipv4",
+      "value": "192.168.250.50",
+      "context": "alert_ALT-2024-002"
+    }
+  ],
+  "timeline": [
+    {
+      "timestamp": "03:15:00",
+      "source": "auth",
+      "action": "login_failed"
+    },
+    {
+      "timestamp": "03:15:00",
+      "source": "firewall",
+      "action": "allow"
+    },
+    {
+      "timestamp": "03:15:12",
+      "source": "auth",
+      "action": "login_failed"
+    },
+    {
+      "timestamp": "03:15:12",
+      "source": "firewall",
+      "action": "allow"
+    },
+    {
+      "timestamp": "03:15:24",
+      "source": "auth",
+      "action": "login_failed"
+    },
+    {
+      "timestamp": "03:15:24",
+      "source": "firewall",
+      "action": "allow"
+    },
+    {
+      "timestamp": "03:15:36",
+      "source": "auth",
+      "action": "login_failed"
+    },
+    {
+      "timestamp": "03:15:36",
+      "source": "firewall",
+      "action": "allow"
+    },
+    {
+      "timestamp": "03:15:48",
+      "source": "auth",
+      "action": "login_failed"
+    },
+    {
+      "timestamp": "03:15:48",
+      "source": "firewall",
+      "action": "allow"
+    },
+    {
+      "timestamp": "03:16:00",
+      "source": "auth",
+      "action": "login_failed"
+    },
+    {
+      "timestamp": "03:16:00",
+      "source": "firewall",
+      "action": "allow"
+    },
+    {
+      "timestamp": "03:16:12",
+      "source": "auth",
+      "action": "login_failed"
+    },
+    {
+      "timestamp": "03:16:12",
+      "source": "firewall",
+      "action": "allow"
+    },
+    {
+      "timestamp": "03:16:24",
+      "source": "auth",
+      "action": "login_failed"
+    },
+    {
+      "timestamp": "03:16:24",
+      "source": "firewall",
+      "action": "allow"
+    },
+    {
+      "timestamp": "03:16:36",
+      "source": "auth",
+      "action": "login_failed"
+    },
+    {
+      "timestamp": "03:16:36",
+      "source": "firewall",
+      "action": "allow"
+    },
+    {
+      "timestamp": "03:16:48",
+      "source": "auth",
+      "action": "login_failed"
+    },
+    {
+      "timestamp": "03:16:48",
+      "source": "firewall",
+      "action": "allow"
+    },
+    {
+      "timestamp": "03:17:00",
+      "source": "auth",
+      "action": "login_failed"
+    },
+    {
+      "timestamp": "03:17:00",
+      "source": "firewall",
+      "action": "allow"
+    },
+    {
+      "timestamp": "03:17:12",
+      "source": "auth",
+      "action": "login_failed"
+    },
+    {
+      "timestamp": "03:17:12",
+      "source": "firewall",
+      "action": "allow"
+    },
+    {
+      "timestamp": "03:17:24",
+      "source": "auth",
+      "action": "login_failed"
+    },
+    {
+      "timestamp": "03:17:24",
+      "source": "firewall",
+      "action": "allow"
+    },
+    {
+      "timestamp": "03:17:36",
+      "source": "auth",
+      "action": "login_failed"
+    },
+    {
+      "timestamp": "03:17:36",
+      "source": "firewall",
+      "action": "allow"
+    },
+    {
+      "timestamp": "03:17:48",
+      "source": "auth",
+      "action": "login_failed"
+    },
+    {
+      "timestamp": "03:17:48",
+      "source": "firewall",
+      "action": "allow"
+    }
+  ],
+  "correlation_narrative": "L'analyse croisée des 33 événements télémétriques a identifié **1 pattern(s)** de corrélation :\n\n- **brute_force_followed_by_success** (confiance 90%) : 15 failed authentications followed by successful login for user 'admin' from 40.80.148.42",
+  "threat_intel_results": [
+    {
+      "ioc": "40.80.148.42",
+      "reputation": "malicious",
+      "confidence": "99%"
+    },
+    {
+      "ioc": "192.168.250.50",
+      "reputation": "clean",
+      "confidence": "99%"
+    }
+  ],
+  "severity_assessment": {
+    "severity": "critical",
+    "score": 79.2,
+    "rule_score": 70.0,
+    "ml_confidence": 0.8525,
+    "explanation": "Rule score: 70.0/100 (4 rules triggered)\nML confidence: 0.85 (trained model)\nCombined: 40% × 70.0 + 60% × 85.2 = 79.2\nSeverity: CRITICAL\n  [threat_intel] ti_malicious_high_confidence: +40 pts — 1 IOC(s) malicious ≥0.85: ['40.80.148.42']\n  [correlation] pattern_brute_force_success: +35 pts — 15 failed authentications followed by successful login for user 'admin' from 40.80.148.42\n  [temporal] after_hours_activity: +15 pts — 33/33 events occurred outside business hours\n  [network] all_internal_traffic: -20 pts — No external IP destinations observed in correlated events"
+  },
+  "verdict": "true_positive",
+  "recommended_action": "contain",
+  "action_items": [
+    "Isoler immédiatement le(s) hôte(s) compromis du réseau",
+    "Bloquer les adresses IP malveillantes identifiées au pare-feu périmétrique",
+    "Réinitialiser les identifiants des comptes compromis",
+    "Lancer une analyse forensique complète des systèmes affectés",
+    "Notifier l'équipe de réponse aux incidents (CSIRT)"
+  ],
+  "agent_reasoning": [
+    {
+      "step": "1",
+      "action": "Extract Indicators of Compromise (IOCs)",
+      "result": "Extracted 2 IOCs: 2 IPs, 0 hashes, 0 users, 0 domains."
+    },
+    {
+      "step": "2",
+      "action": "Query network and perimeter telemetry for source IP '40.80.148.42'",
+      "result": "Identified 31 matching network/IDS telemetry events."
+    },
+    {
+      "step": "3",
+      "action": "Query authentication and endpoint activity for user 'None' and host 'None'",
+      "result": "Retrieved 33 authentication/endpoint events."
+    },
+    {
+      "step": "4",
+      "action": "Cross-source temporal correlation and attack pattern reconstruction",
+      "result": "Correlated 33 events. Detected 1 attack pattern(s): ['brute_force_followed_by_success']."
+    },
+    {
+      "step": "5",
+      "action": "Query Threat Intelligence feeds for all extracted external IOCs",
+      "result": "Evaluated 2 indicators. Malicious tags found: [['apt', 'brute-force', 'po1s0n1vy']]."
+    },
+    {
+      "step": "6",
+      "action": "Compute combined severity score (rules + ML)",
+      "result": "Score: 79.2/100 | Severity: CRITICAL | Rules: ['ti_malicious_high_confidence', 'pattern_brute_force_success', 'after_hours_activity', 'all_internal_traffic']"
+    },
+    {
+      "step": "7",
+      "action": "Synthesize final investigation verdict and containment action",
+      "result": "Verdict: TRUE_POSITIVE | Recommended Action: CONTAIN"
+    }
+  ],
+  "generated_at": "2026-08-21T09:05:43.047243Z",
+  "markdown": "# Rapport d'Investigation — Alerte ALT-2024-002\n\n**Généré le** : 2026-08-21 09:05:43 UTC\n\n---\n\n## Résumé Exécutif\n\nL'investigation de l'alerte **Multiple Failed Login Attempts — srv-dc01** a confirmé une menace réelle (sévérité **CRITICAL**, score 79/100). Les patterns d'attaque identifiés incluent : brute_force_followed_by_success. Les indicateurs malveillants confirmés : `40.80.148.42`. **Action immédiate requise : CONTAIN.**\n\n---\n\n## Informations de l'Alerte\n\n| Champ | Valeur |\n|---|---|\n| **ID** | `ALT-2024-002` |\n| **Timestamp** | 2024-08-11T03:16:00 |\n| **Source** | Windows Event Log |\n| **Titre** | Multiple Failed Login Attempts — srv-dc01 |\n| **Verdict** | 🔴 **TRUE POSITIVE** |\n| **Sévérité** | 🔴 **CRITICAL** (score: 79.2/100) |\n| **Action recommandée** | 🛑 CONTAIN |\n\n---\n\n## IOCs Extraits\n\n| Type | Valeur | Contexte |\n|---|---|---|\n| ipv4 | `40.80.148.42` | alert_ALT-2024-002 |\n| ipv4 | `192.168.250.50` | alert_ALT-2024-002 |\n\n---\n\n## Chronologie des Événements\n\n| Heure | Source | Action | Entité |\n|---|---|---|---|\n| 03:15:00 | auth | login_failed | 40.80.148.42→192.168.250.50 |\n| 03:15:00 | firewall | allow | 40.80.148.42→192.168.250.50 |\n| 03:15:12 | auth | login_failed | 40.80.148.42→192.168.250.50 |\n| 03:15:12 | firewall | allow | 40.80.148.42→192.168.250.50 |\n| 03:15:24 | auth | login_failed | 40.80.148.42→192.168.250.50 |\n| 03:15:24 | firewall | allow | 40.80.148.42→192.168.250.50 |\n| 03:15:36 | auth | login_failed | 40.80.148.42→192.168.250.50 |\n| 03:15:36 | firewall | allow | 40.80.148.42→192.168.250.50 |\n| 03:15:48 | auth | login_failed | 40.80.148.42→192.168.250.50 |\n| 03:15:48 | firewall | allow | 40.80.148.42→192.168.250.50 |\n| 03:16:00 | auth | login_failed | 40.80.148.42→192.168.250.50 |\n| 03:16:00 | firewall | allow | 40.80.148.42→192.168.250.50 |\n| 03:16:12 | auth | login_failed | 40.80.148.42→192.168.250.50 |\n| 03:16:12 | firewall | allow | 40.80.148.42→192.168.250.50 |\n| 03:16:24 | auth | login_failed | 40.80.148.42→192.168.250.50 |\n| 03:16:24 | firewall | allow | 40.80.148.42→192.168.250.50 |\n| 03:16:36 | auth | login_failed | 40.80.148.42→192.168.250.50 |\n| 03:16:36 | firewall | allow | 40.80.148.42→192.168.250.50 |\n| 03:16:48 | auth | login_failed | 40.80.148.42→192.168.250.50 |\n| 03:16:48 | firewall | allow | 40.80.148.42→192.168.250.50 |\n| 03:17:00 | auth | login_failed | 40.80.148.42→192.168.250.50 |\n| 03:17:00 | firewall | allow | 40.80.148.42→192.168.250.50 |\n| 03:17:12 | auth | login_failed | 40.80.148.42→192.168.250.50 |\n| 03:17:12 | firewall | allow | 40.80.148.42→192.168.250.50 |\n| 03:17:24 | auth | login_failed | 40.80.148.42→192.168.250.50 |\n| 03:17:24 | firewall | allow | 40.80.148.42→192.168.250.50 |\n| 03:17:36 | auth | login_failed | 40.80.148.42→192.168.250.50 |\n| 03:17:36 | firewall | allow | 40.80.148.42→192.168.250.50 |\n| 03:17:48 | auth | login_failed | 40.80.148.42→192.168.250.50 |\n| 03:17:48 | firewall | allow | 40.80.148.42→192.168.250.50 |\n\n---\n\n## Corrélation des Preuves\n\nL'analyse croisée des 33 événements télémétriques a identifié **1 pattern(s)** de corrélation :\n\n- **brute_force_followed_by_success** (confiance 90%) : 15 failed authentications followed by successful login for user 'admin' from 40.80.148.42\n\n### Patterns Détectés\n- **brute_force_followed_by_success** (high) : 15 failed authentications followed by successful login for user 'admin' from 40.80.148.42\n\n---\n\n## Vérification Threat Intel\n\n| IOC | Réputation | Confiance | Tags | Source |\n|---|---|---|---|---|\n| `40.80.148.42` | 🔴 malicious | 99% | apt, brute-force, po1s0n1vy | local_known_iocs |\n| `192.168.250.50` | 🟢 clean | 99% | internal, domain-controller | local_known_iocs |\n\n---\n\n## Scoring de Sévérité\n\n### Score Combiné\n\n- **Score Règles** : 70.0/100\n- **Confiance ML** : 85.25%\n- **Score Final** : **79.2/100** → CRITICAL\n\n### Règles Déclenchées\n\n- ✅ ti_malicious_high_confidence →  pts — __\n- ✅ pattern_brute_force_success →  pts — __\n- ✅ after_hours_activity →  pts — __\n- 🔽 all_internal_traffic →  pts — __\n\n### Top Features ML\n\n| Feature | Importance |\n|---|---|\n| event_count | 0.1573 |\n| pattern_count_critical | 0.1533 |\n| ti_malicious_count | 0.1345 |\n| ti_max_confidence | 0.1134 |\n| external_dest_count | 0.0916 |\n\n---\n\n## Recommandation\n\n**Action : CONTAIN**\n\n1. Isoler immédiatement le(s) hôte(s) compromis du réseau\n2. Bloquer les adresses IP malveillantes identifiées au pare-feu périmétrique\n3. Réinitialiser les identifiants des comptes compromis\n4. Lancer une analyse forensique complète des systèmes affectés\n5. Notifier l'équipe de réponse aux incidents (CSIRT)\n\n---\n\n## Raisonnement de l'Agent\n\n### Étape 1 — Extract Indicators of Compromise (IOCs)\n\n- **Tool** : `extract_iocs`\n- **Raisonnement** : Extract all atomic observables (IPs, domains, hashes, users, hosts) from raw alert payload\n- **Résultat** : Extracted 2 IOCs: 2 IPs, 0 hashes, 0 users, 0 domains.\n\n### Étape 2 — Query network and perimeter telemetry for source IP '40.80.148.42'\n\n- **Tool** : `query_logs`\n- **Raisonnement** : Determine whether inbound/outbound connection volume, targeted ports, or IDS signatures indicate malicious probing\n- **Résultat** : Identified 31 matching network/IDS telemetry events.\n\n### Étape 3 — Query authentication and endpoint activity for user 'None' and host 'None'\n\n- **Tool** : `query_logs`\n- **Raisonnement** : Assess whether user account suffered brute forcing, unauthorized privilege escalation, or executed suspicious processes\n- **Résultat** : Retrieved 33 authentication/endpoint events.\n\n### Étape 4 — Cross-source temporal correlation and attack pattern reconstruction\n\n- **Tool** : `correlate_events`\n- **Raisonnement** : Synthesize event timeline across perimeter, authentication, and endpoint telemetry to identify multi-stage attack patterns\n- **Résultat** : Correlated 33 events. Detected 1 attack pattern(s): ['brute_force_followed_by_success'].\n\n### Étape 5 — Query Threat Intelligence feeds for all extracted external IOCs\n\n- **Tool** : `lookup_threat_intel`\n- **Raisonnement** : Validate external indicators against known C2 servers, vulnerability scanners, and malicious hash feeds\n- **Résultat** : Evaluated 2 indicators. Malicious tags found: [['apt', 'brute-force', 'po1s0n1vy']].\n\n### Étape 6 — Compute combined severity score (rules + ML)\n\n- **Tool** : `score_severity`\n- **Raisonnement** : Combine explicit rule-based scoring with ML binary classification to produce calibrated severity\n- **Résultat** : Score: 79.2/100 | Severity: CRITICAL | Rules: ['ti_malicious_high_confidence', 'pattern_brute_force_success', 'after_hours_activity', 'all_internal_traffic']\n\n### Étape 7 — Synthesize final investigation verdict and containment action\n\n- **Tool** : `investigation_synthesis`\n- **Raisonnement** : Weigh threat intel confidence, correlation patterns, and administrative context to assign verdict\n- **Résultat** : Verdict: TRUE_POSITIVE | Recommended Action: CONTAIN\n\n"
+}

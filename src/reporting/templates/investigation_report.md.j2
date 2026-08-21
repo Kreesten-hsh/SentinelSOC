@@ -1,0 +1,132 @@
+{# SentinelSOC Investigation Report Template #}
+# Rapport d'Investigation — Alerte {{ alert_id }}
+
+**Généré le** : {{ generated_at }}
+
+---
+
+## Résumé Exécutif
+
+{{ executive_summary }}
+
+---
+
+## Informations de l'Alerte
+
+| Champ | Valeur |
+|---|---|
+| **ID** | `{{ alert_id }}` |
+| **Timestamp** | {{ alert_timestamp }} |
+| **Source** | {{ alert_source }} |
+| **Titre** | {{ alert_title }} |
+| **Verdict** | {{ verdict_icon }} **{{ verdict }}** |
+| **Sévérité** | {{ severity_icon }} **{{ severity }}** (score: {{ severity_score }}/100) |
+| **Action recommandée** | {{ action_icon }} {{ recommended_action }} |
+
+---
+
+## IOCs Extraits
+
+{% if iocs_extracted %}
+| Type | Valeur | Contexte |
+|---|---|---|
+{% for ioc in iocs_extracted %}
+| {{ ioc.type }} | `{{ ioc.value }}` | {{ ioc.context }} |
+{% endfor %}
+{% else %}
+_Aucun IOC extrait._
+{% endif %}
+
+---
+
+## Chronologie des Événements
+
+{% if timeline %}
+| Heure | Source | Action | Entité |
+|---|---|---|---|
+{% for event in timeline %}
+| {{ event.timestamp }} | {{ event.source }} | {{ event.action }} | {{ event.entity }} |
+{% endfor %}
+{% else %}
+_Aucun événement corrélé._
+{% endif %}
+
+---
+
+## Corrélation des Preuves
+
+{{ correlation_narrative }}
+
+{% if patterns_detected %}
+### Patterns Détectés
+{% for p in patterns_detected %}
+- **{{ p.pattern }}** ({{ p.severity }}) : {{ p.description }}
+{% endfor %}
+{% endif %}
+
+---
+
+## Vérification Threat Intel
+
+{% if threat_intel_results %}
+| IOC | Réputation | Confiance | Tags | Source |
+|---|---|---|---|---|
+{% for ti in threat_intel_results %}
+| `{{ ti.ioc }}` | {{ ti.reputation_icon }} {{ ti.reputation }} | {{ ti.confidence }} | {{ ti.tags }} | {{ ti.source }} |
+{% endfor %}
+{% else %}
+_Aucun IOC vérifié._
+{% endif %}
+
+---
+
+## Scoring de Sévérité
+
+### Score Combiné
+
+- **Score Règles** : {{ rule_score }}/100
+- **Confiance ML** : {{ ml_confidence }}
+- **Score Final** : **{{ severity_score }}/100** → {{ severity }}
+
+### Règles Déclenchées
+
+{% if rules_triggered %}
+{% for rule in rules_triggered %}
+- {{ rule.icon }} {{ rule.name }} → {{ rule.weight }} pts — _{{ rule.evidence }}_
+{% endfor %}
+{% else %}
+_Aucune règle déclenchée._
+{% endif %}
+
+{% if ml_top_features %}
+### Top Features ML
+
+| Feature | Importance |
+|---|---|
+{% for name, imp in ml_top_features.items() %}
+| {{ name }} | {{ "%.4f"|format(imp) }} |
+{% endfor %}
+{% endif %}
+
+---
+
+## Recommandation
+
+**Action : {{ recommended_action }}**
+
+{% for item in action_items %}
+{{ loop.index }}. {{ item }}
+{% endfor %}
+
+---
+
+## Raisonnement de l'Agent
+
+{% for step in agent_reasoning %}
+### Étape {{ step.number }} — {{ step.action }}
+
+- **Tool** : `{{ step.tool }}`
+- **Raisonnement** : {{ step.reasoning }}
+- **Résultat** : {{ step.result }}
+
+{% endfor %}

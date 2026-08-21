@@ -1,0 +1,99 @@
+{
+  "alert_id": "ALT-2024-006",
+  "title": "Investigation Report — Suspicious PowerShell Execution — srv-dc01",
+  "executive_summary": "L'investigation de l'alerte **Suspicious PowerShell Execution — srv-dc01** conclut à un **faux positif** (sévérité **LOW**, score 11/100). L'activité observée correspond à un comportement légitime sans indicateur de compromission. **Aucune action corrective nécessaire.** L'alerte peut être clôturée.",
+  "alert_info": {
+    "id": "ALT-2024-006",
+    "timestamp": "2024-08-15T10:02:00",
+    "source": "Sysmon",
+    "title": "Suspicious PowerShell Execution — srv-dc01"
+  },
+  "iocs_extracted": [
+    {
+      "type": "hostname",
+      "value": "srv-dc01",
+      "context": "alert_ALT-2024-006"
+    },
+    {
+      "type": "user",
+      "value": "WAYNE\\sysadmin.jones",
+      "context": "user"
+    }
+  ],
+  "timeline": [
+    {
+      "timestamp": "09:59:00",
+      "source": "endpoint",
+      "action": "scheduled_task"
+    },
+    {
+      "timestamp": "10:00:00",
+      "source": "auth",
+      "action": "login_success"
+    },
+    {
+      "timestamp": "10:02:00",
+      "source": "endpoint",
+      "action": "process_create"
+    },
+    {
+      "timestamp": "10:03:00",
+      "source": "firewall",
+      "action": "allow"
+    }
+  ],
+  "correlation_narrative": "L'analyse croisée des 4 événements télémétriques a identifié **1 pattern(s)** de corrélation :\n\n- **scheduled_task_triggered_execution** (confiance 70%) : Endpoint process execution correlates with scheduled task trigger (['Weekly-AD-Maintenance'])",
+  "threat_intel_results": [],
+  "severity_assessment": {
+    "severity": "low",
+    "score": 11.1,
+    "rule_score": 0.0,
+    "ml_confidence": 0.185,
+    "explanation": "Rule score: 0.0/100 (2 rules triggered)\nML confidence: 0.18 (trained model)\nCombined: 40% × 0.0 + 60% × 18.5 = 11.1\nSeverity: LOW\n  [correlation] pattern_scheduled_task: -15 pts — Endpoint process execution correlates with scheduled task trigger (['Weekly-AD-Maintenance'])\n  [network] all_internal_traffic: -20 pts — No external IP destinations observed in correlated events"
+  },
+  "verdict": "false_positive",
+  "recommended_action": "ignore",
+  "action_items": [
+    "Clôturer l'alerte comme faux positif documenté",
+    "Envisager un tuning de la règle de détection pour réduire le bruit"
+  ],
+  "agent_reasoning": [
+    {
+      "step": "1",
+      "action": "Extract Indicators of Compromise (IOCs)",
+      "result": "Extracted 2 IOCs: 0 IPs, 0 hashes, 1 users, 0 domains."
+    },
+    {
+      "step": "2",
+      "action": "Query network and perimeter telemetry for source IP 'None'",
+      "result": "Identified 4 matching network/IDS telemetry events."
+    },
+    {
+      "step": "3",
+      "action": "Query authentication and endpoint activity for user 'WAYNE\\sysadmin.jones' and host 'srv-dc01'",
+      "result": "Retrieved 2 authentication/endpoint events."
+    },
+    {
+      "step": "4",
+      "action": "Cross-source temporal correlation and attack pattern reconstruction",
+      "result": "Correlated 4 events. Detected 1 attack pattern(s): ['scheduled_task_triggered_execution']."
+    },
+    {
+      "step": "5",
+      "action": "Query Threat Intelligence feeds for all extracted external IOCs",
+      "result": "Evaluated 0 indicators. Malicious tags found: []."
+    },
+    {
+      "step": "6",
+      "action": "Compute combined severity score (rules + ML)",
+      "result": "Score: 11.1/100 | Severity: LOW | Rules: ['pattern_scheduled_task', 'all_internal_traffic']"
+    },
+    {
+      "step": "7",
+      "action": "Synthesize final investigation verdict and containment action",
+      "result": "Verdict: FALSE_POSITIVE | Recommended Action: IGNORE"
+    }
+  ],
+  "generated_at": "2026-08-21T09:05:43.608191Z",
+  "markdown": "# Rapport d'Investigation — Alerte ALT-2024-006\n\n**Généré le** : 2026-08-21 09:05:43 UTC\n\n---\n\n## Résumé Exécutif\n\nL'investigation de l'alerte **Suspicious PowerShell Execution — srv-dc01** conclut à un **faux positif** (sévérité **LOW**, score 11/100). L'activité observée correspond à un comportement légitime sans indicateur de compromission. **Aucune action corrective nécessaire.** L'alerte peut être clôturée.\n\n---\n\n## Informations de l'Alerte\n\n| Champ | Valeur |\n|---|---|\n| **ID** | `ALT-2024-006` |\n| **Timestamp** | 2024-08-15T10:02:00 |\n| **Source** | Sysmon |\n| **Titre** | Suspicious PowerShell Execution — srv-dc01 |\n| **Verdict** | 🟢 **FALSE POSITIVE** |\n| **Sévérité** | 🟢 **LOW** (score: 11.1/100) |\n| **Action recommandée** | ✅ IGNORE |\n\n---\n\n## IOCs Extraits\n\n| Type | Valeur | Contexte |\n|---|---|---|\n| hostname | `srv-dc01` | alert_ALT-2024-006 |\n| user | `WAYNE\\sysadmin.jones` | user |\n\n---\n\n## Chronologie des Événements\n\n| Heure | Source | Action | Entité |\n|---|---|---|---|\n| 09:59:00 | endpoint | scheduled_task | SYSTEM |\n| 10:00:00 | auth | login_success | 192.168.250.10→192.168.250.50 |\n| 10:02:00 | endpoint | process_create | WAYNE\\sysadmin.jones |\n| 10:03:00 | firewall | allow | 192.168.250.50→192.168.250.255 |\n\n---\n\n## Corrélation des Preuves\n\nL'analyse croisée des 4 événements télémétriques a identifié **1 pattern(s)** de corrélation :\n\n- **scheduled_task_triggered_execution** (confiance 70%) : Endpoint process execution correlates with scheduled task trigger (['Weekly-AD-Maintenance'])\n\n### Patterns Détectés\n- **scheduled_task_triggered_execution** (high) : Endpoint process execution correlates with scheduled task trigger (['Weekly-AD-Maintenance'])\n\n---\n\n## Vérification Threat Intel\n\n_Aucun IOC vérifié._\n\n---\n\n## Scoring de Sévérité\n\n### Score Combiné\n\n- **Score Règles** : 0.0/100\n- **Confiance ML** : 18.50%\n- **Score Final** : **11.1/100** → LOW\n\n### Règles Déclenchées\n\n- ✅ pattern_scheduled_task →  pts — __\n- 🔽 all_internal_traffic →  pts — __\n\n### Top Features ML\n\n| Feature | Importance |\n|---|---|\n| event_count | 0.1573 |\n| pattern_count_critical | 0.1533 |\n| ti_malicious_count | 0.1345 |\n| ti_max_confidence | 0.1134 |\n| external_dest_count | 0.0916 |\n\n---\n\n## Recommandation\n\n**Action : IGNORE**\n\n1. Clôturer l'alerte comme faux positif documenté\n2. Envisager un tuning de la règle de détection pour réduire le bruit\n\n---\n\n## Raisonnement de l'Agent\n\n### Étape 1 — Extract Indicators of Compromise (IOCs)\n\n- **Tool** : `extract_iocs`\n- **Raisonnement** : Extract all atomic observables (IPs, domains, hashes, users, hosts) from raw alert payload\n- **Résultat** : Extracted 2 IOCs: 0 IPs, 0 hashes, 1 users, 0 domains.\n\n### Étape 2 — Query network and perimeter telemetry for source IP 'None'\n\n- **Tool** : `query_logs`\n- **Raisonnement** : Determine whether inbound/outbound connection volume, targeted ports, or IDS signatures indicate malicious probing\n- **Résultat** : Identified 4 matching network/IDS telemetry events.\n\n### Étape 3 — Query authentication and endpoint activity for user 'WAYNE\\sysadmin.jones' and host 'srv-dc01'\n\n- **Tool** : `query_logs`\n- **Raisonnement** : Assess whether user account suffered brute forcing, unauthorized privilege escalation, or executed suspicious processes\n- **Résultat** : Retrieved 2 authentication/endpoint events.\n\n### Étape 4 — Cross-source temporal correlation and attack pattern reconstruction\n\n- **Tool** : `correlate_events`\n- **Raisonnement** : Synthesize event timeline across perimeter, authentication, and endpoint telemetry to identify multi-stage attack patterns\n- **Résultat** : Correlated 4 events. Detected 1 attack pattern(s): ['scheduled_task_triggered_execution'].\n\n### Étape 5 — Query Threat Intelligence feeds for all extracted external IOCs\n\n- **Tool** : `lookup_threat_intel`\n- **Raisonnement** : Validate external indicators against known C2 servers, vulnerability scanners, and malicious hash feeds\n- **Résultat** : Evaluated 0 indicators. Malicious tags found: [].\n\n### Étape 6 — Compute combined severity score (rules + ML)\n\n- **Tool** : `score_severity`\n- **Raisonnement** : Combine explicit rule-based scoring with ML binary classification to produce calibrated severity\n- **Résultat** : Score: 11.1/100 | Severity: LOW | Rules: ['pattern_scheduled_task', 'all_internal_traffic']\n\n### Étape 7 — Synthesize final investigation verdict and containment action\n\n- **Tool** : `investigation_synthesis`\n- **Raisonnement** : Weigh threat intel confidence, correlation patterns, and administrative context to assign verdict\n- **Résultat** : Verdict: FALSE_POSITIVE | Recommended Action: IGNORE\n\n"
+}

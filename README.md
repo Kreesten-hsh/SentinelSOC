@@ -5,7 +5,7 @@
 [![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
 [![FastAPI](https://img.shields.io/badge/backend-FastAPI-009688.svg)](https://fastapi.tiangolo.com/)
 [![React + Vite](https://img.shields.io/badge/frontend-React%2019%20%2B%20Vite-61dafb.svg)](https://vitejs.dev/)
-[![Tests](https://img.shields.io/badge/tests-74%2F74%20passing%20(100%25)-success.svg)](https://docs.pytest.org/)
+[![Tests](https://img.shields.io/badge/tests-76%2F76%20passing%20(100%25)-success.svg)](https://docs.pytest.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 ---
@@ -14,16 +14,16 @@
 
 SentinelSOC est une plateforme d'investigation et de triage de niveau **SOC Tier-2/3**. Il reçoit une alerte brute de sécurité (SIEM/IDS/EDR), extrait automatiquement les indicateurs de compromission (IOCs), interroge la télémétrie multi-sources (pare-feu Fortinet, authentification Windows Event Log 4624/4625, processus endpoint Sysmon EID 1, IDS Suricata), reconstitue la chaîne causale d'attaque, enrichit via Threat Intelligence, calcule un score de sévérité hybride (Règles explicites + ML RandomForest) et génère un rapport d'investigation structuré avec actions de remédiation immédiates.
 
-### Architecture Dual-Engine : Déterministe (Défaut) vs LLM (Optionnel)
+### Architecture Dual-Engine : Déterministe (Production) vs LLM (Expérimental)
 
-Pour répondre aux exigences réelles des opérations de sécurité (SOC), SentinelSOC implémente deux modes d'orchestration :
+Pour concilier auditabilité industrielle et recherche agentique, SentinelSOC implémente deux modes d'orchestration :
 
-1. **Pipeline Causal Déterministe (Défaut en Production)** :
+1. **Pipeline Causal Déterministe (Moteur de Production par Défaut)** :
    - Exécution causale stricte en **7 étapes ordonnées** s'appuyant sur les contrats d'outils `smolagents` (`IOCExtractorTool`, `LogQueryTool`, `EventCorrelatorTool`, `ThreatIntelTool`, `SeverityScorer`).
    - **Avantages** : Zéro hallucination sur les IP/hashes, zéro latence d'inférence LLM, auditabilité mathématique complète et reproductibilité à 100% sans nécessiter de GPU ou de clé API.
-2. **Mode Agentic LLM (`use_llm=True`)** :
-   - Orchestrateur `smolagents.CodeAgent` alimenté par LiteLLM / Ollama (`mistral:7b` ou tout LLM compatible OpenAI/Anthropic/HuggingFace).
-   - Conçu pour les investigations ouvertes nécessitant la génération dynamique de requêtes Python non bornées.
+2. **Mode Agentic LLM (`use_llm=True` / `investigate_llm()`) (Expérimental / Roadmap)** :
+   - Orchestrateur `smolagents.CodeAgent` alimenté par LiteLLM / Ollama (`mistral:7b` ou tout LLM compatible).
+   - Conçu pour les investigations ouvertes nécessitant la génération dynamique de code Python. Le câblage des outils est testé et validé (`tests/test_agent_llm.py`), l'inférence réelle nécessite une instance locale Ollama active.
 
 ---
 
@@ -115,14 +115,16 @@ cd frontend && npm install && cd ..
 
 ---
 
-## 6. Vérification Complète (Clone Propre)
+## 6. Scripts de Vérification
 
-Pour simuler fidèlement ce qu'un évaluateur externe obtient sur un clone propre dans un environnement virtuel vierge :
-
-```bash
-# Exécute la création d'un venv jetable, pip install -e ".[dev]", entraînement ML et 74 tests pytest
-./scripts/verify_clean.sh
-```
+- **Vérification In-Place Rapide** :
+  ```bash
+  ./scripts/verify_local.sh
+  ```
+- **Vérification Réelle sur Clone Vierge Isolé** (crée un clone temporaire via `mktemp -d`, installe et exécute 76 tests) :
+  ```bash
+  ./scripts/verify_clean.sh
+  ```
 
 ---
 
@@ -154,7 +156,8 @@ SentinelSOC/
 │   ├── generate_scenarios.py # Générateur haute fidélité des logs BOTS v1
 │   ├── generate_reports.py   # Générateur de rapports Markdown
 │   ├── train_severity_model.py # Entraînement RandomForest & validation croisée
-│   ├── verify_clean.sh       # Script de vérification sur clone propre
+│   ├── verify_local.sh       # Vérification locale rapide
+│   ├── verify_clean.sh       # Vérification isolée sur clone temporaire
 │   └── run_investigations.py # Exécution batch des 8 alertes
 ├── src/
 │   ├── agent/                # Agent smolagents & Prompts SOC
@@ -163,7 +166,7 @@ SentinelSOC/
 │   ├── reporting/            # Moteur de génération de rapports Jinja2
 │   ├── scoring/              # Moteur de scoring hybride (Règles + ML)
 │   └── tools/                # Outils d'investigation (IOC, Query, Correlator, TI)
-├── tests/                    # 74 tests unitaires et d'intégration
+├── tests/                    # 76 tests unitaires et d'intégration
 ├── DECISIONS.md              # Registre des décisions d'architecture (D001-D009)
 ├── pyproject.toml            # Dépendances et configuration package
 └── start.sh                  # Script de démarrage tout-en-un

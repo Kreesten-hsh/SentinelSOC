@@ -77,8 +77,34 @@ class SentinelInvestigationAgent:
                 system_prompt=INVESTIGATION_SYSTEM_PROMPT,
                 max_steps=8,
             )
-        except Exception:
+        except Exception as err:
             self._llm_agent = None
+
+    def investigate_llm(self, alert: Alert) -> str:
+        """Execute dynamic autonomous investigation via smolagents CodeAgent and LiteLLM.
+
+        Returns the raw trace / final synthesis text produced by the LLM agent.
+        """
+        if self._llm_agent is None:
+            self._init_llm_agent()
+            if self._llm_agent is None:
+                raise RuntimeError(
+                    f"Failed to initialize LLM CodeAgent with model '{self.model_name}'. "
+                    "Ensure Ollama or API credentials are configured."
+                )
+
+        prompt = f"""Investigate the following security alert:
+Alert ID: {alert.id}
+Source: {alert.source}
+Title: {alert.title}
+Timestamp: {alert.timestamp.isoformat()}
+Description: {alert.description}
+Raw Data: {json.dumps(alert.raw_data)}
+
+Use your tools to extract IOCs, query logs, correlate events, and check threat intel.
+Conclude with a clear verdict (TRUE_POSITIVE, FALSE_POSITIVE, SUSPICIOUS) and recommended action.
+"""
+        return str(self._llm_agent.run(prompt))
 
     def investigate(self, alert: Alert) -> InvestigationResult:
         """Execute a complete, structured investigation on a raw alert."""

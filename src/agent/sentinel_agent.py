@@ -16,6 +16,8 @@ from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
+from src.scoring.severity_scorer import SeverityScorer
+
 from src.agent.prompts import INVESTIGATION_SYSTEM_PROMPT
 from src.data.log_store import LogStore
 from src.models.alert import (
@@ -28,6 +30,7 @@ from src.models.alert import (
     InvestigationStep,
     LogEvent,
     RecommendedAction,
+    SeverityScore,
     ThreatIntelResult,
     Verdict,
 )
@@ -52,6 +55,7 @@ class SentinelInvestigationAgent:
         self.log_tool = LogQueryTool(log_store=self.log_store)
         self.corr_tool = EventCorrelatorTool(log_store=self.log_store)
         self.ti_tool = ThreatIntelTool(threat_intel_file=threat_intel_path)
+        self.severity_scorer = SeverityScorer()
 
         self.tools = [self.ioc_tool, self.log_tool, self.corr_tool, self.ti_tool]
         self.use_llm = use_llm
@@ -225,14 +229,65 @@ class SentinelInvestigationAgent:
             timestamp=datetime.now(UTC),
         ))
 
-        # ── Step 6: Formulate Analytical Verdict & Recommendation ──
+        # ── Step 6: Severity Scoring ──
+        # Collect log events as dicts for the scorer
+        all_logs: list[LogEvent] = []
+        if alert.scenario_id:
+            all_logs = self.log_store.query_by_scenario(alert.scenario_id)
+        else:
+            # Gather from store using available observables
+            gathered_events: list[LogEvent] = []
+            if query_src_ip:
+                gathered_events.extend(self.log_store.query_by_src_ip(query_src_ip))
+            if query_user:
+                gathered_events.extend(self.log_store.query_by_user(query_user))
+            if query_host:
+                gathered_events.extend(self.log_store.query_by_host(query_host))
+            seen_ids: set[str] = set()
+            for evt in gathered_events:
+                eid = str(evt.id)
+                if eid not in seen_ids:
+                    seen_ids.add(eid)
+                    all_logs.append(evt)
+
+        log_event_dicts = [
+            {
+                "timestamp": e.timestamp.isoformat(),
+                "src_ip": e.src_ip,
+                "dest_ip": e.dest_ip,
+                "user": e.user,
+                "host": e.host,
+                "action": e.action,
+                "bytes_sent": e.metadata.get("bytes_sent", 0),
+            }
+            for e in all_logs
+        ]
+
+        severity_result = self.severity_scorer.score(
+            threat_intel=threat_intel_results,
+            patterns=patterns,
+            log_events=log_event_dicts,
+        )
+
+        steps.append(InvestigationStep(
+            step_number=6,
+            action="Compute combined severity score (rules + ML)",
+            reasoning="Combine explicit rule-based scoring with ML binary classification to produce calibrated severity",
+            tool_used="score_severity",
+            query=f"rules={len(severity_result.rules_triggered)} triggered, ml_confidence={severity_result.ml_confidence:.2f}",
+            result_summary=f"Score: {severity_result.final_score:.1f}/100 | Severity: {severity_result.severity.value.upper()} | Rules: {severity_result.rules_triggered}",
+            events_found=1,
+            timestamp=datetime.now(UTC),
+        ))
+
+        # ── Step 7: Formulate Analytical Verdict & Recommendation ──
         verdict, action = self._synthesize_verdict(
             threat_intel=threat_intel_results,
             patterns=patterns,
         )
 
         steps.append(InvestigationStep(
-            step_number=6,
+            step_number=7,
             action="Synthesize final investigation verdict and containment action",
             reasoning="Weigh threat intel confidence, correlation patterns, and administrative context to assign verdict",
             tool_used="investigation_synthesis",
@@ -241,11 +296,6 @@ class SentinelInvestigationAgent:
             events_found=1,
             timestamp=datetime.now(UTC),
         ))
-
-        # Retrieve scenario log events for full audit trail
-        all_logs: list[LogEvent] = []
-        if alert.scenario_id:
-            all_logs = self.log_store.query_by_scenario(alert.scenario_id)
 
         completed_at = datetime.now(UTC)
 
@@ -256,6 +306,7 @@ class SentinelInvestigationAgent:
             log_events=all_logs,
             correlations=correlations,
             threat_intel=threat_intel_results,
+            severity_score=severity_result,
             verdict=verdict,
             recommended_action=action,
             started_at=started_at,

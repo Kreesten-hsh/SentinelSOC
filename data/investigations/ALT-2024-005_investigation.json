@@ -14,7 +14,7 @@
         "context": "alert_ALT-2024-005"
       }
     ],
-    "extraction_timestamp": "2026-08-21T08:40:54.227782Z"
+    "extraction_timestamp": "2026-08-21T08:57:58.188514Z"
   },
   "steps": [
     {
@@ -25,7 +25,7 @@
       "query": "content={\"src_ip\": \"10.0.0.88\", \"dest_network\": \"192.168.250.0/24\", \"signature\": \"ET SCA...",
       "result_summary": "Extracted 2 IOCs: 2 IPs, 0 hashes, 0 users, 0 domains.",
       "events_found": 2,
-      "timestamp": "2026-08-21T08:40:54.227824Z"
+      "timestamp": "2026-08-21T08:57:58.188528Z"
     },
     {
       "step_number": 2,
@@ -35,7 +35,7 @@
       "query": "src_ip=10.0.0.88, scenario_id=scenario_05_reconnaissance",
       "result_summary": "Identified 29 matching network/IDS telemetry events.",
       "events_found": 29,
-      "timestamp": "2026-08-21T08:40:54.231698Z"
+      "timestamp": "2026-08-21T08:57:58.189880Z"
     },
     {
       "step_number": 3,
@@ -45,7 +45,7 @@
       "query": "user=None, host=None, scenario_id=scenario_05_reconnaissance",
       "result_summary": "Retrieved 29 authentication/endpoint events.",
       "events_found": 29,
-      "timestamp": "2026-08-21T08:40:54.233681Z"
+      "timestamp": "2026-08-21T08:57:58.191111Z"
     },
     {
       "step_number": 4,
@@ -55,7 +55,7 @@
       "query": "scenario_id=scenario_05_reconnaissance, target_ip=10.0.0.88",
       "result_summary": "Correlated 29 events. Detected 1 attack pattern(s): ['reconnaissance_only'].",
       "events_found": 1,
-      "timestamp": "2026-08-21T08:40:54.234290Z"
+      "timestamp": "2026-08-21T08:57:58.192077Z"
     },
     {
       "step_number": 5,
@@ -65,17 +65,27 @@
       "query": "IOCs: ['10.0.0.88', '192.168.250.0']",
       "result_summary": "Evaluated 2 indicators. Malicious tags found: [].",
       "events_found": 0,
-      "timestamp": "2026-08-21T08:40:54.234538Z"
+      "timestamp": "2026-08-21T08:57:58.192330Z"
     },
     {
       "step_number": 6,
+      "action": "Compute combined severity score (rules + ML)",
+      "reasoning": "Combine explicit rule-based scoring with ML binary classification to produce calibrated severity",
+      "tool_used": "score_severity",
+      "query": "rules=2 triggered, ml_confidence=0.84",
+      "result_summary": "Score: 50.3/100 | Severity: MEDIUM | Rules: ['pattern_recon_only', 'all_internal_traffic']",
+      "events_found": 1,
+      "timestamp": "2026-08-21T08:57:58.295525Z"
+    },
+    {
+      "step_number": 7,
       "action": "Synthesize final investigation verdict and containment action",
       "reasoning": "Weigh threat intel confidence, correlation patterns, and administrative context to assign verdict",
       "tool_used": "investigation_synthesis",
       "query": "Analytical evaluation",
       "result_summary": "Verdict: SUSPICIOUS | Recommended Action: MONITOR",
       "events_found": 1,
-      "timestamp": "2026-08-21T08:40:54.234565Z"
+      "timestamp": "2026-08-21T08:57:58.295563Z"
     }
   ],
   "log_events": [
@@ -674,9 +684,26 @@
       "raw_response": {}
     }
   ],
-  "severity_score": null,
+  "severity_score": {
+    "rule_score": 0.0,
+    "ml_confidence": 0.8391666666666666,
+    "final_score": 50.349999999999994,
+    "severity": "medium",
+    "rules_triggered": [
+      "pattern_recon_only",
+      "all_internal_traffic"
+    ],
+    "ml_features_importance": {
+      "event_count": 0.157270376746647,
+      "pattern_count_critical": 0.153340268592111,
+      "ti_malicious_count": 0.13450499777692015,
+      "ti_max_confidence": 0.11337214585741066,
+      "external_dest_count": 0.09158368539036962
+    },
+    "explanation": "Rule score: 0.0/100 (2 rules triggered)\nML confidence: 0.84 (trained model)\nCombined: 40% × 0.0 + 60% × 83.9 = 50.3\nSeverity: MEDIUM\n  [correlation] pattern_recon_only: +10 pts — Network/port scanning activity detected (1 scan events) without subsequent endpoint process execution\n  [network] all_internal_traffic: -20 pts — No external IP destinations observed in correlated events"
+  },
   "verdict": "suspicious",
   "recommended_action": "monitor",
-  "started_at": "2026-08-21T08:40:54.226738Z",
-  "completed_at": "2026-08-21T08:40:54.234601Z"
+  "started_at": "2026-08-21T08:57:58.187719Z",
+  "completed_at": "2026-08-21T08:57:58.295570Z"
 }

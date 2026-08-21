@@ -24,7 +24,7 @@
         "context": "user"
       }
     ],
-    "extraction_timestamp": "2026-08-21T08:40:54.222629Z"
+    "extraction_timestamp": "2026-08-21T08:57:58.080874Z"
   },
   "steps": [
     {
@@ -35,7 +35,7 @@
       "query": "content={\"src_ip\": \"192.168.250.120\", \"dest_ip\": \"91.234.99.42\", \"dest_port\": 443, \"byte...",
       "result_summary": "Extracted 4 IOCs: 2 IPs, 0 hashes, 1 users, 0 domains.",
       "events_found": 4,
-      "timestamp": "2026-08-21T08:40:54.222664Z"
+      "timestamp": "2026-08-21T08:57:58.080887Z"
     },
     {
       "step_number": 2,
@@ -45,7 +45,7 @@
       "query": "src_ip=192.168.250.120, scenario_id=scenario_04_data_exfiltration",
       "result_summary": "Identified 4 matching network/IDS telemetry events.",
       "events_found": 4,
-      "timestamp": "2026-08-21T08:40:54.222929Z"
+      "timestamp": "2026-08-21T08:57:58.081183Z"
     },
     {
       "step_number": 3,
@@ -55,7 +55,7 @@
       "query": "user=WAYNE\\j.doe, host=ws-jdoe, scenario_id=scenario_04_data_exfiltration",
       "result_summary": "Retrieved 4 authentication/endpoint events.",
       "events_found": 4,
-      "timestamp": "2026-08-21T08:40:54.223155Z"
+      "timestamp": "2026-08-21T08:57:58.081552Z"
     },
     {
       "step_number": 4,
@@ -65,7 +65,7 @@
       "query": "scenario_id=scenario_04_data_exfiltration, target_ip=192.168.250.120",
       "result_summary": "Correlated 7 events. Detected 1 attack pattern(s): ['command_and_control_or_exfiltration'].",
       "events_found": 1,
-      "timestamp": "2026-08-21T08:40:54.223686Z"
+      "timestamp": "2026-08-21T08:57:58.082442Z"
     },
     {
       "step_number": 5,
@@ -75,17 +75,27 @@
       "query": "IOCs: ['192.168.250.120', '91.234.99.42']",
       "result_summary": "Evaluated 2 indicators. Malicious tags found: [['exfiltration', 'data-theft', 'drop-server']].",
       "events_found": 1,
-      "timestamp": "2026-08-21T08:40:54.223943Z"
+      "timestamp": "2026-08-21T08:57:58.082773Z"
     },
     {
       "step_number": 6,
+      "action": "Compute combined severity score (rules + ML)",
+      "reasoning": "Combine explicit rule-based scoring with ML binary classification to produce calibrated severity",
+      "tool_used": "score_severity",
+      "query": "rules=5 triggered, ml_confidence=1.00",
+      "result_summary": "Score: 100.0/100 | Severity: CRITICAL | Rules: ['ti_malicious_high_confidence', 'pattern_c2_exfiltration', 'after_hours_activity', 'external_dest_ip', 'high_volume_outbound']",
+      "events_found": 1,
+      "timestamp": "2026-08-21T08:57:58.185785Z"
+    },
+    {
+      "step_number": 7,
       "action": "Synthesize final investigation verdict and containment action",
       "reasoning": "Weigh threat intel confidence, correlation patterns, and administrative context to assign verdict",
       "tool_used": "investigation_synthesis",
       "query": "Analytical evaluation",
       "result_summary": "Verdict: TRUE_POSITIVE | Recommended Action: CONTAIN",
       "events_found": 1,
-      "timestamp": "2026-08-21T08:40:54.223970Z"
+      "timestamp": "2026-08-21T08:57:58.185825Z"
     }
   ],
   "log_events": [
@@ -270,9 +280,29 @@
       }
     }
   ],
-  "severity_score": null,
+  "severity_score": {
+    "rule_score": 100.0,
+    "ml_confidence": 1.0,
+    "final_score": 100.0,
+    "severity": "critical",
+    "rules_triggered": [
+      "ti_malicious_high_confidence",
+      "pattern_c2_exfiltration",
+      "after_hours_activity",
+      "external_dest_ip",
+      "high_volume_outbound"
+    ],
+    "ml_features_importance": {
+      "event_count": 0.157270376746647,
+      "pattern_count_critical": 0.153340268592111,
+      "ti_malicious_count": 0.13450499777692015,
+      "ti_max_confidence": 0.11337214585741066,
+      "external_dest_count": 0.09158368539036962
+    },
+    "explanation": "Rule score: 100.0/100 (5 rules triggered)\nML confidence: 1.00 (trained model)\nCombined: 40% × 100.0 + 60% × 100.0 = 100.0\nSeverity: CRITICAL\n  [threat_intel] ti_malicious_high_confidence: +40 pts — 1 IOC(s) malicious ≥0.85: ['91.234.99.42']\n  [correlation] pattern_c2_exfiltration: +40 pts — Endpoint activity directly correlates with outbound external communication/IDS alert\n  [temporal] after_hours_activity: +15 pts — 7/7 events occurred outside business hours\n  [network] external_dest_ip: +10 pts — External destinations: ['91.234.99.42']\n  [network] high_volume_outbound: +15 pts — Total outbound: 48.5 MB"
+  },
   "verdict": "true_positive",
   "recommended_action": "contain",
-  "started_at": "2026-08-21T08:40:54.221778Z",
-  "completed_at": "2026-08-21T08:40:54.224013Z"
+  "started_at": "2026-08-21T08:57:58.080486Z",
+  "completed_at": "2026-08-21T08:57:58.185900Z"
 }

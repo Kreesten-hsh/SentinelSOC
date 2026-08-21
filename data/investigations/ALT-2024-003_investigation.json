@@ -24,7 +24,7 @@
         "context": "user"
       }
     ],
-    "extraction_timestamp": "2026-08-21T08:40:54.218234Z"
+    "extraction_timestamp": "2026-08-21T08:57:57.955996Z"
   },
   "steps": [
     {
@@ -35,7 +35,7 @@
       "query": "content={\"src_ip\": \"192.168.250.100\", \"dest_ip\": \"185.141.27.88\", \"dest_port\": 443, \"sig...",
       "result_summary": "Extracted 4 IOCs: 2 IPs, 0 hashes, 1 users, 0 domains.",
       "events_found": 4,
-      "timestamp": "2026-08-21T08:40:54.218259Z"
+      "timestamp": "2026-08-21T08:57:57.956073Z"
     },
     {
       "step_number": 2,
@@ -45,7 +45,7 @@
       "query": "src_ip=192.168.250.100, scenario_id=scenario_03_ransomware",
       "result_summary": "Identified 2 matching network/IDS telemetry events.",
       "events_found": 2,
-      "timestamp": "2026-08-21T08:40:54.218603Z"
+      "timestamp": "2026-08-21T08:57:57.956273Z"
     },
     {
       "step_number": 3,
@@ -55,7 +55,7 @@
       "query": "user=WAYNE\\bob.smith, host=ws-bobsmith, scenario_id=scenario_03_ransomware",
       "result_summary": "Retrieved 6 authentication/endpoint events.",
       "events_found": 6,
-      "timestamp": "2026-08-21T08:40:54.219213Z"
+      "timestamp": "2026-08-21T08:57:57.956554Z"
     },
     {
       "step_number": 4,
@@ -65,7 +65,7 @@
       "query": "scenario_id=scenario_03_ransomware, target_ip=192.168.250.100",
       "result_summary": "Correlated 8 events. Detected 1 attack pattern(s): ['command_and_control_or_exfiltration'].",
       "events_found": 1,
-      "timestamp": "2026-08-21T08:40:54.219688Z"
+      "timestamp": "2026-08-21T08:57:57.956921Z"
     },
     {
       "step_number": 5,
@@ -75,17 +75,27 @@
       "query": "IOCs: ['192.168.250.100', '185.141.27.88']",
       "result_summary": "Evaluated 2 indicators. Malicious tags found: [['c2', 'ransomware', 'cerber']].",
       "events_found": 1,
-      "timestamp": "2026-08-21T08:40:54.220075Z"
+      "timestamp": "2026-08-21T08:57:57.957140Z"
     },
     {
       "step_number": 6,
+      "action": "Compute combined severity score (rules + ML)",
+      "reasoning": "Combine explicit rule-based scoring with ML binary classification to produce calibrated severity",
+      "tool_used": "score_severity",
+      "query": "rules=3 triggered, ml_confidence=0.97",
+      "result_summary": "Score: 94.2/100 | Severity: CRITICAL | Rules: ['ti_malicious_high_confidence', 'pattern_c2_exfiltration', 'external_dest_ip']",
+      "events_found": 1,
+      "timestamp": "2026-08-21T08:57:58.079652Z"
+    },
+    {
+      "step_number": 7,
       "action": "Synthesize final investigation verdict and containment action",
       "reasoning": "Weigh threat intel confidence, correlation patterns, and administrative context to assign verdict",
       "tool_used": "investigation_synthesis",
       "query": "Analytical evaluation",
       "result_summary": "Verdict: TRUE_POSITIVE | Recommended Action: CONTAIN",
       "events_found": 1,
-      "timestamp": "2026-08-21T08:40:54.220098Z"
+      "timestamp": "2026-08-21T08:57:58.079685Z"
     }
   ],
   "log_events": [
@@ -294,9 +304,27 @@
       }
     }
   ],
-  "severity_score": null,
+  "severity_score": {
+    "rule_score": 90.0,
+    "ml_confidence": 0.97,
+    "final_score": 94.19999999999999,
+    "severity": "critical",
+    "rules_triggered": [
+      "ti_malicious_high_confidence",
+      "pattern_c2_exfiltration",
+      "external_dest_ip"
+    ],
+    "ml_features_importance": {
+      "event_count": 0.157270376746647,
+      "pattern_count_critical": 0.153340268592111,
+      "ti_malicious_count": 0.13450499777692015,
+      "ti_max_confidence": 0.11337214585741066,
+      "external_dest_count": 0.09158368539036962
+    },
+    "explanation": "Rule score: 90.0/100 (3 rules triggered)\nML confidence: 0.97 (trained model)\nCombined: 40% × 90.0 + 60% × 97.0 = 94.2\nSeverity: CRITICAL\n  [threat_intel] ti_malicious_high_confidence: +40 pts — 1 IOC(s) malicious ≥0.85: ['185.141.27.88']\n  [correlation] pattern_c2_exfiltration: +40 pts — Endpoint activity directly correlates with outbound external communication/IDS alert\n  [network] external_dest_ip: +10 pts — External destinations: ['185.141.27.88']"
+  },
   "verdict": "true_positive",
   "recommended_action": "contain",
-  "started_at": "2026-08-21T08:40:54.217535Z",
-  "completed_at": "2026-08-21T08:40:54.220127Z"
+  "started_at": "2026-08-21T08:57:57.955175Z",
+  "completed_at": "2026-08-21T08:57:58.079695Z"
 }

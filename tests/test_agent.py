@@ -60,11 +60,13 @@ class TestSentinelInvestigationAgent:
         result = agent.investigate(alert_01)
 
         assert result.alert_id == alert_01.id
-        assert len(result.steps) == 6
+        assert len(result.steps) == 7
         assert all(step.reasoning for step in result.steps)
         assert all(step.tool_used for step in result.steps)
         assert result.verdict == Verdict.TRUE_POSITIVE
         assert result.recommended_action == RecommendedAction.CONTAIN
+        assert result.severity_score is not None
+        assert result.severity_score.severity.value == "critical"
 
     def test_agent_evaluates_false_positive(self, agent: SentinelInvestigationAgent, sample_alerts: list[Alert]) -> None:
         alert_06 = next(a for a in sample_alerts if a.id == "ALT-2024-006")
@@ -72,6 +74,8 @@ class TestSentinelInvestigationAgent:
 
         assert result.verdict == Verdict.FALSE_POSITIVE
         assert result.recommended_action == RecommendedAction.IGNORE
+        assert result.severity_score is not None
+        assert result.severity_score.severity.value == "low"
 
     def test_agent_evaluates_ambiguous_lateral_movement(self, agent: SentinelInvestigationAgent, sample_alerts: list[Alert]) -> None:
         alert_07 = next(a for a in sample_alerts if a.id == "ALT-2024-007")
@@ -79,6 +83,8 @@ class TestSentinelInvestigationAgent:
 
         assert result.verdict == Verdict.SUSPICIOUS
         assert result.recommended_action == RecommendedAction.ESCALATE
+        assert result.severity_score is not None
+        assert result.severity_score.severity.value == "medium"
 
     def test_agent_all_8_scenarios_match_ground_truth(
         self,
@@ -101,7 +107,7 @@ class TestSentinelInvestigationAgent:
             assert result.recommended_action.value == gt["recommended_action"], (
                 f"Action mismatch for {alert.id} ({scenario_key}): got {result.recommended_action.value}, expected {gt['recommended_action']}"
             )
-            assert len(result.steps) == 6
+            assert len(result.steps) == 7
             assert result.completed_at is not None
 
     def test_anti_cheat_no_scenario_id(

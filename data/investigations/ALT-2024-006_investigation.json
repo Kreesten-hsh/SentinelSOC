@@ -14,7 +14,7 @@
         "context": "user"
       }
     ],
-    "extraction_timestamp": "2026-08-21T08:40:54.237568Z"
+    "extraction_timestamp": "2026-08-21T08:57:58.297272Z"
   },
   "steps": [
     {
@@ -25,7 +25,7 @@
       "query": "content={\"host\": \"srv-dc01\", \"user\": \"WAYNE\\\\sysadmin.jones\", \"process\": \"powershell.exe...",
       "result_summary": "Extracted 2 IOCs: 0 IPs, 0 hashes, 1 users, 0 domains.",
       "events_found": 2,
-      "timestamp": "2026-08-21T08:40:54.237587Z"
+      "timestamp": "2026-08-21T08:57:58.297283Z"
     },
     {
       "step_number": 2,
@@ -35,7 +35,7 @@
       "query": "src_ip=None, scenario_id=scenario_06_false_positive",
       "result_summary": "Identified 4 matching network/IDS telemetry events.",
       "events_found": 4,
-      "timestamp": "2026-08-21T08:40:54.238057Z"
+      "timestamp": "2026-08-21T08:57:58.297530Z"
     },
     {
       "step_number": 3,
@@ -45,7 +45,7 @@
       "query": "user=WAYNE\\sysadmin.jones, host=srv-dc01, scenario_id=scenario_06_false_positive",
       "result_summary": "Retrieved 2 authentication/endpoint events.",
       "events_found": 2,
-      "timestamp": "2026-08-21T08:40:54.238392Z"
+      "timestamp": "2026-08-21T08:57:58.297727Z"
     },
     {
       "step_number": 4,
@@ -55,7 +55,7 @@
       "query": "scenario_id=scenario_06_false_positive, target_ip=None",
       "result_summary": "Correlated 4 events. Detected 1 attack pattern(s): ['scheduled_task_triggered_execution'].",
       "events_found": 1,
-      "timestamp": "2026-08-21T08:40:54.238935Z"
+      "timestamp": "2026-08-21T08:57:58.298204Z"
     },
     {
       "step_number": 5,
@@ -65,17 +65,27 @@
       "query": "IOCs: []",
       "result_summary": "Evaluated 0 indicators. Malicious tags found: [].",
       "events_found": 0,
-      "timestamp": "2026-08-21T08:40:54.238966Z"
+      "timestamp": "2026-08-21T08:57:58.298223Z"
     },
     {
       "step_number": 6,
+      "action": "Compute combined severity score (rules + ML)",
+      "reasoning": "Combine explicit rule-based scoring with ML binary classification to produce calibrated severity",
+      "tool_used": "score_severity",
+      "query": "rules=2 triggered, ml_confidence=0.18",
+      "result_summary": "Score: 11.1/100 | Severity: LOW | Rules: ['pattern_scheduled_task', 'all_internal_traffic']",
+      "events_found": 1,
+      "timestamp": "2026-08-21T08:57:58.400051Z"
+    },
+    {
+      "step_number": 7,
       "action": "Synthesize final investigation verdict and containment action",
       "reasoning": "Weigh threat intel confidence, correlation patterns, and administrative context to assign verdict",
       "tool_used": "investigation_synthesis",
       "query": "Analytical evaluation",
       "result_summary": "Verdict: FALSE_POSITIVE | Recommended Action: IGNORE",
       "events_found": 1,
-      "timestamp": "2026-08-21T08:40:54.238992Z"
+      "timestamp": "2026-08-21T08:57:58.400113Z"
     }
   ],
   "log_events": [
@@ -167,9 +177,26 @@
     }
   ],
   "threat_intel": [],
-  "severity_score": null,
+  "severity_score": {
+    "rule_score": 0.0,
+    "ml_confidence": 0.185,
+    "final_score": 11.1,
+    "severity": "low",
+    "rules_triggered": [
+      "pattern_scheduled_task",
+      "all_internal_traffic"
+    ],
+    "ml_features_importance": {
+      "event_count": 0.157270376746647,
+      "pattern_count_critical": 0.153340268592111,
+      "ti_malicious_count": 0.13450499777692015,
+      "ti_max_confidence": 0.11337214585741066,
+      "external_dest_count": 0.09158368539036962
+    },
+    "explanation": "Rule score: 0.0/100 (2 rules triggered)\nML confidence: 0.18 (trained model)\nCombined: 40% × 0.0 + 60% × 18.5 = 11.1\nSeverity: LOW\n  [correlation] pattern_scheduled_task: -15 pts — Endpoint process execution correlates with scheduled task trigger (['Weekly-AD-Maintenance'])\n  [network] all_internal_traffic: -20 pts — No external IP destinations observed in correlated events"
+  },
   "verdict": "false_positive",
   "recommended_action": "ignore",
-  "started_at": "2026-08-21T08:40:54.236795Z",
-  "completed_at": "2026-08-21T08:40:54.239036Z"
+  "started_at": "2026-08-21T08:57:58.296741Z",
+  "completed_at": "2026-08-21T08:57:58.400125Z"
 }

@@ -14,7 +14,7 @@
         "context": "alert_ALT-2024-002"
       }
     ],
-    "extraction_timestamp": "2026-08-21T08:40:54.208255Z"
+    "extraction_timestamp": "2026-08-21T08:57:57.834928Z"
   },
   "steps": [
     {
@@ -25,7 +25,7 @@
       "query": "content={\"src_ip\": \"40.80.148.42\", \"dest_ip\": \"192.168.250.50\", \"dest_port\": 22, \"event_...",
       "result_summary": "Extracted 2 IOCs: 2 IPs, 0 hashes, 0 users, 0 domains.",
       "events_found": 2,
-      "timestamp": "2026-08-21T08:40:54.208275Z"
+      "timestamp": "2026-08-21T08:57:57.834955Z"
     },
     {
       "step_number": 2,
@@ -35,7 +35,7 @@
       "query": "src_ip=40.80.148.42, scenario_id=scenario_02_brute_force",
       "result_summary": "Identified 31 matching network/IDS telemetry events.",
       "events_found": 31,
-      "timestamp": "2026-08-21T08:40:54.210813Z"
+      "timestamp": "2026-08-21T08:57:57.837261Z"
     },
     {
       "step_number": 3,
@@ -45,7 +45,7 @@
       "query": "user=None, host=None, scenario_id=scenario_02_brute_force",
       "result_summary": "Retrieved 33 authentication/endpoint events.",
       "events_found": 33,
-      "timestamp": "2026-08-21T08:40:54.212816Z"
+      "timestamp": "2026-08-21T08:57:57.839956Z"
     },
     {
       "step_number": 4,
@@ -55,7 +55,7 @@
       "query": "scenario_id=scenario_02_brute_force, target_ip=40.80.148.42",
       "result_summary": "Correlated 33 events. Detected 1 attack pattern(s): ['brute_force_followed_by_success'].",
       "events_found": 1,
-      "timestamp": "2026-08-21T08:40:54.214509Z"
+      "timestamp": "2026-08-21T08:57:57.841321Z"
     },
     {
       "step_number": 5,
@@ -65,17 +65,27 @@
       "query": "IOCs: ['40.80.148.42', '192.168.250.50']",
       "result_summary": "Evaluated 2 indicators. Malicious tags found: [['apt', 'brute-force', 'po1s0n1vy']].",
       "events_found": 1,
-      "timestamp": "2026-08-21T08:40:54.214990Z"
+      "timestamp": "2026-08-21T08:57:57.841717Z"
     },
     {
       "step_number": 6,
+      "action": "Compute combined severity score (rules + ML)",
+      "reasoning": "Combine explicit rule-based scoring with ML binary classification to produce calibrated severity",
+      "tool_used": "score_severity",
+      "query": "rules=4 triggered, ml_confidence=0.85",
+      "result_summary": "Score: 79.2/100 | Severity: CRITICAL | Rules: ['ti_malicious_high_confidence', 'pattern_brute_force_success', 'after_hours_activity', 'all_internal_traffic']",
+      "events_found": 1,
+      "timestamp": "2026-08-21T08:57:57.953803Z"
+    },
+    {
+      "step_number": 7,
       "action": "Synthesize final investigation verdict and containment action",
       "reasoning": "Weigh threat intel confidence, correlation patterns, and administrative context to assign verdict",
       "tool_used": "investigation_synthesis",
       "query": "Analytical evaluation",
       "result_summary": "Verdict: TRUE_POSITIVE | Recommended Action: CONTAIN",
       "events_found": 1,
-      "timestamp": "2026-08-21T08:40:54.215056Z"
+      "timestamp": "2026-08-21T08:57:57.953841Z"
     }
   ],
   "log_events": [
@@ -780,9 +790,28 @@
       }
     }
   ],
-  "severity_score": null,
+  "severity_score": {
+    "rule_score": 70.0,
+    "ml_confidence": 0.8525,
+    "final_score": 79.15,
+    "severity": "critical",
+    "rules_triggered": [
+      "ti_malicious_high_confidence",
+      "pattern_brute_force_success",
+      "after_hours_activity",
+      "all_internal_traffic"
+    ],
+    "ml_features_importance": {
+      "event_count": 0.157270376746647,
+      "pattern_count_critical": 0.153340268592111,
+      "ti_malicious_count": 0.13450499777692015,
+      "ti_max_confidence": 0.11337214585741066,
+      "external_dest_count": 0.09158368539036962
+    },
+    "explanation": "Rule score: 70.0/100 (4 rules triggered)\nML confidence: 0.85 (trained model)\nCombined: 40% × 70.0 + 60% × 85.2 = 79.2\nSeverity: CRITICAL\n  [threat_intel] ti_malicious_high_confidence: +40 pts — 1 IOC(s) malicious ≥0.85: ['40.80.148.42']\n  [correlation] pattern_brute_force_success: +35 pts — 15 failed authentications followed by successful login for user 'admin' from 40.80.148.42\n  [temporal] after_hours_activity: +15 pts — 33/33 events occurred outside business hours\n  [network] all_internal_traffic: -20 pts — No external IP destinations observed in correlated events"
+  },
   "verdict": "true_positive",
   "recommended_action": "contain",
-  "started_at": "2026-08-21T08:40:54.207706Z",
-  "completed_at": "2026-08-21T08:40:54.215134Z"
+  "started_at": "2026-08-21T08:57:57.833629Z",
+  "completed_at": "2026-08-21T08:57:57.953851Z"
 }

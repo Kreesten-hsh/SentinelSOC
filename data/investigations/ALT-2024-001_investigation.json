@@ -14,7 +14,7 @@
         "context": "alert_ALT-2024-001"
       }
     ],
-    "extraction_timestamp": "2026-08-21T08:40:54.202881Z"
+    "extraction_timestamp": "2026-08-21T08:57:57.656988Z"
   },
   "steps": [
     {
@@ -25,7 +25,7 @@
       "query": "content={\"src_ip\": \"23.22.63.114\", \"dest_ip\": \"192.168.250.70\", \"dest_port\": 80, \"signat...",
       "result_summary": "Extracted 2 IOCs: 2 IPs, 0 hashes, 0 users, 0 domains.",
       "events_found": 2,
-      "timestamp": "2026-08-21T08:40:54.202909Z"
+      "timestamp": "2026-08-21T08:57:57.657010Z"
     },
     {
       "step_number": 2,
@@ -35,7 +35,7 @@
       "query": "src_ip=23.22.63.114, scenario_id=scenario_01_web_defacement",
       "result_summary": "Identified 13 matching network/IDS telemetry events.",
       "events_found": 13,
-      "timestamp": "2026-08-21T08:40:54.203772Z"
+      "timestamp": "2026-08-21T08:57:57.657868Z"
     },
     {
       "step_number": 3,
@@ -45,7 +45,7 @@
       "query": "user=None, host=None, scenario_id=scenario_01_web_defacement",
       "result_summary": "Retrieved 14 authentication/endpoint events.",
       "events_found": 14,
-      "timestamp": "2026-08-21T08:40:54.204534Z"
+      "timestamp": "2026-08-21T08:57:57.658407Z"
     },
     {
       "step_number": 4,
@@ -55,7 +55,7 @@
       "query": "scenario_id=scenario_01_web_defacement, target_ip=23.22.63.114",
       "result_summary": "Correlated 14 events. Detected 1 attack pattern(s): ['reconnaissance_followed_by_execution'].",
       "events_found": 1,
-      "timestamp": "2026-08-21T08:40:54.205479Z"
+      "timestamp": "2026-08-21T08:57:57.659005Z"
     },
     {
       "step_number": 5,
@@ -65,17 +65,27 @@
       "query": "IOCs: ['23.22.63.114', '192.168.250.70']",
       "result_summary": "Evaluated 2 indicators. Malicious tags found: [['web-scanner', 'acunetix', 'vulnerability-assessment']].",
       "events_found": 1,
-      "timestamp": "2026-08-21T08:40:54.205953Z"
+      "timestamp": "2026-08-21T08:57:57.659257Z"
     },
     {
       "step_number": 6,
+      "action": "Compute combined severity score (rules + ML)",
+      "reasoning": "Combine explicit rule-based scoring with ML binary classification to produce calibrated severity",
+      "tool_used": "score_severity",
+      "query": "rules=3 triggered, ml_confidence=0.91",
+      "result_summary": "Score: 76.5/100 | Severity: CRITICAL | Rules: ['ti_malicious_high_confidence', 'pattern_recon_then_execution', 'all_internal_traffic']",
+      "events_found": 1,
+      "timestamp": "2026-08-21T08:57:57.831531Z"
+    },
+    {
+      "step_number": 7,
       "action": "Synthesize final investigation verdict and containment action",
       "reasoning": "Weigh threat intel confidence, correlation patterns, and administrative context to assign verdict",
       "tool_used": "investigation_synthesis",
       "query": "Analytical evaluation",
       "result_summary": "Verdict: TRUE_POSITIVE | Recommended Action: CONTAIN",
       "events_found": 1,
-      "timestamp": "2026-08-21T08:40:54.206052Z"
+      "timestamp": "2026-08-21T08:57:57.831588Z"
     }
   ],
   "log_events": [
@@ -401,9 +411,27 @@
       "raw_response": {}
     }
   ],
-  "severity_score": null,
+  "severity_score": {
+    "rule_score": 55.0,
+    "ml_confidence": 0.9083333333333334,
+    "final_score": 76.5,
+    "severity": "critical",
+    "rules_triggered": [
+      "ti_malicious_high_confidence",
+      "pattern_recon_then_execution",
+      "all_internal_traffic"
+    ],
+    "ml_features_importance": {
+      "event_count": 0.157270376746647,
+      "pattern_count_critical": 0.153340268592111,
+      "ti_malicious_count": 0.13450499777692015,
+      "ti_max_confidence": 0.11337214585741066,
+      "external_dest_count": 0.09158368539036962
+    },
+    "explanation": "Rule score: 55.0/100 (3 rules triggered)\nML confidence: 0.91 (trained model)\nCombined: 40% × 55.0 + 60% × 90.8 = 76.5\nSeverity: CRITICAL\n  [threat_intel] ti_malicious_high_confidence: +40 pts — 1 IOC(s) malicious ≥0.85: ['23.22.63.114']\n  [correlation] pattern_recon_then_execution: +35 pts — Vulnerability scanning detected followed by process execution (1 endpoint events observed)\n  [network] all_internal_traffic: -20 pts — No external IP destinations observed in correlated events"
+  },
   "verdict": "true_positive",
   "recommended_action": "contain",
-  "started_at": "2026-08-21T08:40:54.201977Z",
-  "completed_at": "2026-08-21T08:40:54.206151Z"
+  "started_at": "2026-08-21T08:57:57.656525Z",
+  "completed_at": "2026-08-21T08:57:57.831607Z"
 }

@@ -10,8 +10,20 @@ echo "======================================================================"
 echo "🛡️  Starting SentinelSOC Environment"
 echo "======================================================================"
 
-# Ensure database directory exists
+# Ensure directories exist
 mkdir -p "$PROJECT_ROOT/data"
+mkdir -p "$PROJECT_ROOT/models"
+
+# 0. Check and Bootstrap ML Severity Model
+MODEL_FILE="$PROJECT_ROOT/models/severity_model.joblib"
+if [ ! -f "$MODEL_FILE" ]; then
+    echo "[0/3] ML severity model not found at models/severity_model.joblib."
+    echo "      Bootstrapping RandomForest classifier from investigation archetypes..."
+    python3 scripts/train_severity_model.py
+    echo "      ✓ ML Model successfully trained and serialized."
+else
+    echo "[0/3] ML severity model verified at $MODEL_FILE."
+fi
 
 # Function to clean background processes on Ctrl+C
 cleanup() {

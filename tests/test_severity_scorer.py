@@ -97,7 +97,7 @@ class TestFeatureExtraction:
 
 class TestMLScorer:
     def test_heuristic_fallback_when_no_model(self) -> None:
-        scorer = MLScorer(model_path=Path("/nonexistent/model.joblib"))
+        scorer = MLScorer(model_path=Path("/nonexistent/model.joblib"), auto_bootstrap=False)
         ti = [ThreatIntelResult(ioc_value="1.2.3.4", ioc_type=IOCType.IPV4, reputation="malicious", confidence=0.9)]
         confidence, importances = scorer.predict(threat_intel=ti, patterns=[])
         assert 0.0 <= confidence <= 1.0

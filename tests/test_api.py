@@ -17,7 +17,11 @@ def client() -> TestClient:
 def test_health_endpoint(client: TestClient) -> None:
     res = client.get("/api/health")
     assert res.status_code == 200
-    assert res.json() == {"status": "healthy", "service": "SentinelSOC"}
+    data = res.json()
+    assert data["status"] == "healthy"
+    assert data["service"] == "SentinelSOC"
+    assert data["ml_model_loaded"] is True
+    assert "pipeline_mode" in data
 
 
 def test_seed_and_list_alerts(client: TestClient) -> None:

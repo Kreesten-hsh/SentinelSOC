@@ -1,6 +1,6 @@
 # SentinelSOC 🛡️
 
-**Agent IA Autonome de Triage, Corrélation Multi-Sources & Investigation d'Alertes SOC**
+**Système d'Investigation & Triage d'Alertes SOC — Moteur Causal Déterministe & Support Agentic LLM**
 
 [![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
 [![FastAPI](https://img.shields.io/badge/backend-FastAPI-009688.svg)](https://fastapi.tiangolo.com/)
@@ -12,15 +12,18 @@
 
 ## 1. Présentation & Positionnement
 
-SentinelSOC est un agent autonome d'investigation de niveau **SOC Tier-2/3**. Il reçoit une alerte brute de sécurité (SIEM/IDS/EDR), extrait automatiquement les indicateurs atomiques (IOCs), interroge la télémétrie multi-sources (pare-feu, authentification Active Directory, processus endpoint Sysmon, IDS Suricata), reconstruit la chaîne causale d'attaque, vérifie la Threat Intelligence, calcule un score de sévérité hybride (Règles + ML) et produit un rapport d'investigation certifié avec actions de remédiation immédiates.
+SentinelSOC est une plateforme d'investigation et de triage de niveau **SOC Tier-2/3**. Il reçoit une alerte brute de sécurité (SIEM/IDS/EDR), extrait automatiquement les indicateurs de compromission (IOCs), interroge la télémétrie multi-sources (pare-feu Fortinet, authentification Windows Event Log 4624/4625, processus endpoint Sysmon EID 1, IDS Suricata), reconstitue la chaîne causale d'attaque, enrichit via Threat Intelligence, calcule un score de sévérité hybride (Règles explicites + ML RandomForest) et génère un rapport d'investigation structuré avec actions de remédiation immédiates.
 
-### Positionnement Portfolio
+### Architecture Dual-Engine : Déterministe (Défaut) vs LLM (Optionnel)
 
-| Projet | Posture | Focus Technique Principal |
-|---|---|---|
-| **BENIN CYBER SHIELD** | Détection & signalement produit | Ingénierie logicielle full-stack & conformité |
-| **FinGuard-NHI** | Gouvernance & Policy pour Agents IA | Sécurité des agents (OWASP Top 10 for LLMs / Non-Human Identities) |
-| **SentinelSOC** | **Opérations défensives (Blue Team / SOC)** | **Triage autonome, analyse de logs, corrélation causale, scoring ML & remédiation** |
+Pour répondre aux exigences réelles des opérations de sécurité (SOC), SentinelSOC implémente deux modes d'orchestration :
+
+1. **Pipeline Causal Déterministe (Défaut en Production)** :
+   - Exécution causale stricte en **7 étapes ordonnées** s'appuyant sur les contrats d'outils `smolagents` (`IOCExtractorTool`, `LogQueryTool`, `EventCorrelatorTool`, `ThreatIntelTool`, `SeverityScorer`).
+   - **Avantages** : Zéro hallucination sur les IP/hashes, zéro latence d'inférence LLM, auditabilité mathématique complète et reproductibilité à 100% sans nécessiter de GPU ou de clé API.
+2. **Mode Agentic LLM (`use_llm=True`)** :
+   - Orchestrateur `smolagents.CodeAgent` alimenté par LiteLLM / Ollama (`mistral:7b` ou tout LLM compatible OpenAI/Anthropic/HuggingFace).
+   - Conçu pour les investigations ouvertes nécessitant la génération dynamique de requêtes Python non bornées.
 
 ---
 
@@ -31,10 +34,10 @@ graph TB
     subgraph "Télémétrie SIEM & Datasets"
         A["Splunk BOTS v1 Attacks<br/>(131 logs JSONL normalisés)"] --> B["LogStore Multi-Sources<br/>(Firewall, Auth, Sysmon, IDS)"]
         C["Threat Intel Base<br/>(Local DB + AbuseIPDB Live API)"]
-        D["Modèle RandomForest<br/>(Features d'investigation)"]
+        D["Modèle RandomForest<br/>(Auto-bootstrapé au setup)"]
     end
 
-    subgraph "Moteur Agent SentinelSOC"
+    subgraph "Pipeline d'Investigation Causal (7 Étapes)"
         E["Alerte Brute SIEM"] --> S1["1. Extracteur d'IOCs<br/>(Regex + Payload Parsing)"]
         S1 --> S2["2. Télémétrie Réseau<br/>(Firewall Fortinet & IDS Suricata)"]
         S2 --> S3["3. Télémétrie Hôte & Auth<br/>(WinEventLog 4624/4625 & Sysmon EID 1)"]
@@ -58,31 +61,11 @@ graph TB
 
 ---
 
-## 3. Pipeline d'Investigation Autonome (7 Étapes)
+## 3. Matrice des 8 Scénarios BOTS v1 (Validation 100%)
 
-À la réception d'une alerte, SentinelSOC applique systématiquement la méthode d'investigation SOC standardisée :
+SentinelSOC est évalué contre une **vérité terrain isolée** (`data/scenarios/ground_truth.json`) non accessible aux outils d'investigation :
 
-1. **Extraction des IOCs (`extract_iocs`)** : Parse l'alerte pour extraire adresses IP (IPv4/IPv6), domaines, hachages cryptographiques (SHA256, MD5), comptes utilisateurs (`DOMAIN\user`) et noms d'hôtes.
-2. **Télémétrie Réseau & Périmètre (`query_logs`)** : Interroge les flux pare-feu et les signatures IDS associés aux adresses IP sources/destinations pour identifier scans ou communications anormales.
-3. **Télémétrie Authentification & Endpoint (`query_logs`)** : Vérifie l'activité du compte utilisateur (Event ID 4624/4625) et l'exécution de processus sur l'hôte (Sysmon Event ID 1 / Tâches planifiées Event ID 106).
-4. **Corrélation Cross-Source & Reconstitution Causal (`correlate_events`)** : Détecte des enchaînements multi-sources complexes :
-   - `brute_force_followed_by_success`
-   - `command_and_control_or_exfiltration` (filtrage strict sur IP publiques routables via `ipaddress`)
-   - `reconnaissance_followed_by_execution`
-   - `lateral_movement_dual_use_tool` (PsExec, PAExec, WMIC, WinRM + connexions multi-hôtes)
-   - `reconnaissance_only`
-   - `scheduled_task_triggered_execution` (contexte administratif légitime)
-5. **Vérification Threat Intelligence (`lookup_threat_intel`)** : Enrichit les observables externes via la base locale embarquée et l'API live AbuseIPDB.
-6. **Scoring de Sévérité Hybride (`score_severity`)** : Combine un moteur de 13 règles déterministes auditables (40%) et un modèle RandomForest (60%) pour calibrer le score [0-100] et la sévérité (`LOW`, `MEDIUM`, `CRITICAL`).
-7. **Synthèse du Verdict & Remédiation (`investigation_synthesis`)** : Émet le verdict final (`TRUE_POSITIVE`, `FALSE_POSITIVE`, `SUSPICIOUS`) et formule les actions prioritaires de confinement (`CONTAIN`, `ESCALATE`, `MONITOR`, `IGNORE`).
-
----
-
-## 4. Benchmark des 8 Scénarios BOTS v1 (Validation 100%)
-
-SentinelSOC est évalué contre une **vérité terrain isolée** (`data/scenarios/ground_truth.json`) non accessible à l'agent lors de l'investigation :
-
-| ID Alerte | Scénario d'Attaque (Splunk BOTS v1) | Verdict Ground Truth | Verdict Agent | Sévérité Calculée | Action Recommandée | Statut |
+| ID Alerte | Scénario d'Attaque (Splunk BOTS v1) | Verdict Ground Truth | Verdict Système | Sévérité Calculée | Action Recommandée | Statut |
 |---|---|---|---|---|---|---|
 | `ALT-2024-001` | **Web Defacement** (Acunetix scan → Webshell → Defacement) | `TRUE_POSITIVE` | `TRUE_POSITIVE` | `CRITICAL` (72.3/100) | `CONTAIN` | ✅ **100% Match** |
 | `ALT-2024-002` | **SSH / Web Brute Force** (15 échecs → Succès 'admin' → Recon) | `TRUE_POSITIVE` | `TRUE_POSITIVE` | `CRITICAL` (72.3/100) | `CONTAIN` | ✅ **100% Match** |
@@ -95,16 +78,17 @@ SentinelSOC est évalué contre une **vérité terrain isolée** (`data/scenario
 
 ---
 
-## 5. Rigueur Méthodologique & Garanties Anti-Triche
+## 4. Rigueur Méthodologique & Garanties Anti-Biais
 
-1. **Isolation de la Vérité Terrain** ([`DECISIONS.md #D007`](file:///home/hasashi/Bureau/SentinelSOC/DECISIONS.md)) : Le fichier `ground_truth.json` est strictement isolé pour les benchmarks post-hoc et n'est jamais interrogé par les outils ou l'agent.
-2. **Décision Purement Causale** ([`DECISIONS.md #D008`](file:///home/hasashi/Bureau/SentinelSOC/DECISIONS.md)) : L'agent ne lit aucun identifiant de scénario, titre ou description pour déduire son verdict.
-3. **Test de Non-Régression Anti-Triche** : Le test unitaire `test_anti_cheat_no_scenario_id` vérifie qu'une alerte anonymisée sans aucun `scenario_id` produit exactement le même verdict et la même sévérité.
-4. **Validation des Adresses IP Publiques** : `is_external_ip` filtre rigoureusement les communications internes (RFC1918, loopback, broadcast) pour éviter de fausser les détections de fuite de données ou C2.
+1. **Isolation de la Vérité Terrain** ([`DECISIONS.md #D007`](file:///home/hasashi/Bureau/SentinelSOC/DECISIONS.md)) : `ground_truth.json` est strictement réservé à l'évaluation post-hoc et n'est jamais chargé par le LogStore.
+2. **Décision Purement Causale** ([`DECISIONS.md #D008`](file:///home/hasashi/Bureau/SentinelSOC/DECISIONS.md)) : L'agent ne lit aucun champ `scenario_id`, titre ou description pour déduire son verdict.
+3. **Test Anti-Triche** : Le test unitaire `test_anti_cheat_no_scenario_id` vérifie qu'une alerte sans métadonnée produit un verdict identique.
+4. **Validation des IP Publiques** : `is_external_ip` filtre les communications internes (RFC1918, loopback, broadcast) pour éviter les fausses détections d'exfiltration.
+5. **Gestion du Modèle ML & Auto-Bootstrap** ([`DECISIONS.md #D009`](file:///home/hasashi/Bureau/SentinelSOC/DECISIONS.md)) : Le modèle `severity_model.joblib` est auto-généré au premier lancement s'il est absent.
 
 ---
 
-## 6. Installation & Démarrage Rapide
+## 5. Installation & Démarrage Rapide
 
 ### Prérequis
 - Python 3.11+
@@ -117,30 +101,32 @@ SentinelSOC est évalué contre une **vérité terrain isolée** (`data/scenario
 git clone https://github.com/Kreesten-hsh/SentinelSOC.git
 cd SentinelSOC
 
-# 2. Installer les dépendances backend & frontend
-pip install -e .
+# 2. Installer les dépendances backend (avec wheel hatchling) & frontend
+pip install -e ".[dev]"
 cd frontend && npm install && cd ..
 
-# 3. Lancer l'environnement complet (Backend FastAPI + Dashboard React)
-chmod +x start.sh
+# 3. Lancer l'environnement complet (Auto-bootstrap ML + FastAPI + Dashboard React)
 ./start.sh
 ```
 
 - **Dashboard SOC** : [http://localhost:5173](http://localhost:5173)
-- **API Swagger / OpenAPI** : [http://localhost:8000/docs](http://localhost:8000/docs)
+- **API Swagger** : [http://localhost:8000/docs](http://localhost:8000/docs)
+- **État Santé / Modèle ML** : [http://localhost:8000/api/health](http://localhost:8000/api/health)
 
 ---
 
-## 7. Exécution des Tests
+## 6. Vérification Complète (Clone Propre)
+
+Pour simuler fidèlement ce qu'un évaluateur externe obtient sur un clone propre dans un environnement virtuel vierge :
 
 ```bash
-# Exécution de la suite complète (74 tests unitaires & intégration)
-pytest tests/ -v
+# Exécute la création d'un venv jetable, pip install -e ".[dev]", entraînement ML et 74 tests pytest
+./scripts/verify_clean.sh
 ```
 
 ---
 
-## 8. Structure du Codebase
+## 7. Structure du Codebase
 
 ```
 SentinelSOC/
@@ -168,6 +154,7 @@ SentinelSOC/
 │   ├── generate_scenarios.py # Générateur haute fidélité des logs BOTS v1
 │   ├── generate_reports.py   # Générateur de rapports Markdown
 │   ├── train_severity_model.py # Entraînement RandomForest & validation croisée
+│   ├── verify_clean.sh       # Script de vérification sur clone propre
 │   └── run_investigations.py # Exécution batch des 8 alertes
 ├── src/
 │   ├── agent/                # Agent smolagents & Prompts SOC
@@ -177,13 +164,13 @@ SentinelSOC/
 │   ├── scoring/              # Moteur de scoring hybride (Règles + ML)
 │   └── tools/                # Outils d'investigation (IOC, Query, Correlator, TI)
 ├── tests/                    # 74 tests unitaires et d'intégration
-├── DECISIONS.md              # Registre des décisions d'architecture (D001-D008)
-├── pyproject.toml            # Dépendances et configuration projet
+├── DECISIONS.md              # Registre des décisions d'architecture (D001-D009)
+├── pyproject.toml            # Dépendances et configuration package
 └── start.sh                  # Script de démarrage tout-en-un
 ```
 
 ---
 
-## 9. Licence
+## 8. Licence
 
-Projet distribué sous licence MIT. Développé pour des opérations Blue Team & SOC de nouvelle génération.
+Projet distribué sous licence MIT.

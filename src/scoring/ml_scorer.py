@@ -1,17 +1,16 @@
 """ML-based severity scorer using RandomForest on investigation features.
 
 This module handles:
-1. Training a binary classifier (malicious vs benign) on synthetic data
-   derived from the 8 investigation scenarios.
+1. Training a binary classifier (malicious vs benign) on features derived
+   from SOC investigation archetypes.
 2. Inference: given features extracted from a new investigation, predict
    malicious probability (confidence score [0, 1]).
-
-The model is serialized with joblib for fast reload. SHAP explainability
-is available as an optional import.
+3. Automatic bootstrap: ensures the model file exists or generates it on first load.
 """
 
 from __future__ import annotations
 
+import logging
 from pathlib import Path
 from typing import Any
 
@@ -20,15 +19,16 @@ import numpy as np
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import (
     accuracy_score,
-    classification_report,
     f1_score,
     precision_score,
     recall_score,
 )
 
-from src.scoring.features import FEATURE_NAMES, extract_features
 from src.models.alert import ThreatIntelResult
+from src.scoring.features import FEATURE_NAMES, extract_features
+from src.scoring.training_data import generate_training_data
 
+logger = logging.getLogger("sentinelsoc.ml_scorer")
 
 # Default model path
 DEFAULT_MODEL_PATH = Path(__file__).resolve().parent.parent.parent / "models" / "severity_model.joblib"
@@ -40,16 +40,46 @@ class MLScorer:
     Wraps a RandomForestClassifier trained on investigation-level features.
     """
 
-    def __init__(self, model_path: Path | str | None = None) -> None:
+    def __init__(self, model_path: Path | str | None = None, auto_bootstrap: bool = True) -> None:
         self.model_path = Path(model_path) if model_path else DEFAULT_MODEL_PATH
         self._model: RandomForestClassifier | None = None
 
         if self.model_path.is_file():
-            self._model = joblib.load(self.model_path)
+            try:
+                self._model = joblib.load(self.model_path)
+            except Exception as e:
+                logger.error("Failed to load ML model from %s: %s", self.model_path, e)
+                self._model = None
+
+        if self._model is None:
+            if auto_bootstrap:
+                try:
+                    logger.info("ML model absent at '%s'. Auto-training RandomForest model...", self.model_path)
+                    self.auto_train_and_save()
+                except Exception as err:
+                    logger.warning(
+                        "CRITICAL WARNING: Auto-training failed (%s). Falling back to uncalibrated heuristic scoring. "
+                        "Run 'python3 scripts/train_severity_model.py' to restore ML precision.",
+                        err,
+                    )
+            else:
+                logger.warning(
+                    "CRITICAL WARNING: ML model '%s' not found! Falling back to uncalibrated heuristic scoring. "
+                    "Run 'python3 scripts/train_severity_model.py' to restore ML precision.",
+                    self.model_path,
+                )
 
     @property
     def is_trained(self) -> bool:
         return self._model is not None
+
+    def auto_train_and_save(self) -> dict[str, float]:
+        """Automatically generate dataset, train classifier, and save to model_path."""
+        x_train, y_train = generate_training_data()
+        metrics = self.train(x_train, y_train)
+        self.save(self.model_path)
+        logger.info("RandomForest model trained and saved to %s (Accuracy: %.4f, F1: %.4f)", self.model_path, metrics["accuracy"], metrics["f1"])
+        return metrics
 
     def predict(
         self,
@@ -64,12 +94,14 @@ class MLScorer:
         features = extract_features(threat_intel, patterns, log_events)
 
         if not self.is_trained:
-            # Fallback: heuristic confidence based on feature values
+            logger.warning("Predict called without trained model. Using heuristic fallback.")
             return self._heuristic_confidence(features), {}
 
+        assert self._model is not None
         probas = self._model.predict_proba(features.reshape(1, -1))[0]
         # Class index 1 = malicious
-        malicious_idx = list(self._model.classes_).index(1) if 1 in self._model.classes_ else 1
+        classes_list = list(self._model.classes_)
+        malicious_idx = classes_list.index(1) if 1 in classes_list else 1
         malicious_confidence = float(probas[malicious_idx])
 
         importances = dict(zip(FEATURE_NAMES, self._model.feature_importances_))
@@ -98,10 +130,10 @@ class MLScorer:
 
         y_pred = self._model.predict(x_train)
         metrics = {
-            "accuracy": accuracy_score(y_train, y_pred),
-            "precision": precision_score(y_train, y_pred, zero_division=0.0),
-            "recall": recall_score(y_train, y_pred, zero_division=0.0),
-            "f1": f1_score(y_train, y_pred, zero_division=0.0),
+            "accuracy": float(accuracy_score(y_train, y_pred)),
+            "precision": float(precision_score(y_train, y_pred, zero_division=0.0)),
+            "recall": float(recall_score(y_train, y_pred, zero_division=0.0)),
+            "f1": float(f1_score(y_train, y_pred, zero_division=0.0)),
         }
         return metrics
 
@@ -118,7 +150,6 @@ class MLScorer:
 
         Uses simple weighted sum of key features normalized to [0, 1].
         """
-        # Features: [ti_malicious_count, ti_max_confidence, ..., has_c2_exfil, ...]
         weights = np.zeros(len(FEATURE_NAMES))
         idx = {name: i for i, name in enumerate(FEATURE_NAMES)}
 

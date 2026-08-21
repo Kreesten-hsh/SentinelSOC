@@ -11,11 +11,13 @@ Chaque décision technique significative est documentée ici avec son contexte e
 **Limites** : Logs synthétiques = absence du bruit de fond réel. Un vrai dataset aurait des milliers d'événements bénins entre les signaux. Documenté dans le README.
 **Alternative rejetée** : Installer Splunk Free Trial pour extraire les logs → trop de friction pour un MVP, complexifie la reproductibilité.
 
-## D002 — LLM : Ollama local + LiteLLM
+## D002 — LLM : Ollama local + LiteLLM & Architecture Dual-Engine
 **Date** : 2026-08-20
-**Contexte** : L'agent d'investigation a besoin d'un LLM pour raisonner. Options : API payante (OpenAI/Anthropic), HF Inference API (gratuit mais dépendant réseau), Ollama local (gratuit, offline).
-**Décision** : Ollama + Mistral 7B via LiteLLM. Zéro coût, démontrable offline, reproductible. Fallback sur HF Inference API si Ollama indisponible.
-**Justification** : Le jury doit pouvoir reproduire sans clé API. La qualité de raisonnement de Mistral 7B est suffisante pour les 8 scénarios bornés.
+**Contexte** : L'investigation de sécurité en environnement SOC exige à la fois une auditabilité stricte (reproductibilité des verdicts, zéro hallucination sur les IP/hashes) et la capacité d'adapter dynamiquement les requêtes de logs.
+**Décision** : Architecture duale :
+1. **Moteur Causal Déterministe (Production Default)** : Exécution ordonnée en 7 étapes causales via les contrats de tools `smolagents` (`IOCExtractorTool`, `LogQueryTool`, `EventCorrelatorTool`, `ThreatIntelTool`, `SeverityScorer`). Garantit 100% de reproductibilité, zéro coût d'inférence, auditabilité mathématique et conformité SOC.
+2. **Mode Agentic LLM (Optionnel / `use_llm=True`)** : Intégration de `smolagents.CodeAgent` avec LiteLLM / Ollama (`mistral:7b`). Permet à un modèle de générer du code Python pour orchestrer les tools dynamiquement.
+**Justification** : Pour un jury technique ou un déploiement SOC critique, le moteur déterministe est la référence vérifiable. Le mode LLM apporte l'adaptabilité pour de futurs scénarios ouverts.
 
 ## D003 — Base de données : SQLite
 **Date** : 2026-08-20
@@ -58,4 +60,11 @@ Chaque décision technique significative est documentée ici avec son contexte e
 (d) Réécriture intégrale de `_synthesize_verdict` dans `src/agent/sentinel_agent.py` : la décision analytique est strictement découplée de l'alerte brute et s'appuie à 100% sur la matrice de corrélation et la Threat Intelligence.
 (e) Ajout d'un test anti-triche (`test_anti_cheat_no_scenario_id`) dans `tests/test_agent.py` qui garantit qu'une alerte dépourvue de tout identifiant ou métadonnée produit un verdict et une action strictement identiques.
 
-
+## D009 — Gestion des artefacts ML et auto-bootstrap sur clone propre
+**Date** : 2026-08-21
+**Contexte** : Le fichier modèle sérialisé `models/severity_model.joblib` est ignoré par git (`.gitignore`), ce qui constitue une bonne pratique pour éviter de stocker des binaires volumineux ou opaques dans l'historique git. Cependant, sur un clone vierge sans modèle pré-entraîné, un fallback silencieux dégradait le scoring sans message d'erreur explicite.
+**Décision** :
+1. **Auto-Bootstrap Transparent** : `MLScorer` intègre une routine d'auto-entraînement (`auto_train_and_save()`) qui génère les 246 échantillons d'entraînement, entraîne le RandomForest et le sauvegarde automatiquement s'il est absent.
+2. **Orchestration au Démarrage** : `start.sh` vérifie l'existence de `models/severity_model.joblib` et lance explicitement `python3 scripts/train_severity_model.py` avant de démarrer FastAPI et Vite.
+3. **Observabilité API** : L'endpoint `/api/health` expose l'état réel du modèle (`ml_model_loaded: true/false`, chemin du modèle, mode du pipeline) afin que toute dégradation soit immédiatement visible sur le dashboard SOC.
+4. **Validation de Clone Propre** : Ajout du script `scripts/verify_clean.sh` simulant un environnement jetable vierge pour garantir la reproductibilité totale sans cache résiduel.

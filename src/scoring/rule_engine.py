@@ -138,6 +138,8 @@ RULES: list[ScoringRule] = [
     ),
 ]
 
+RULES_BY_NAME: dict[str, ScoringRule] = {r.name: r for r in RULES}
+
 _RULE_INDEX: dict[str, ScoringRule] = {r.name: r for r in RULES}
 
 

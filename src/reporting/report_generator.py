@@ -147,12 +147,18 @@ class ReportGenerator:
         # Scoring details
         rules_triggered_formatted: list[dict[str, str]] = []
         if result.severity_score:
+            from src.scoring.rule_engine import RULES_BY_NAME
+
             for rule_name in result.severity_score.rules_triggered:
+                rule_def = RULES_BY_NAME.get(rule_name)
+                weight_val = rule_def.weight if rule_def else 0.0
+                desc_val = rule_def.description if rule_def else rule_name
+                weight_str = f"+{weight_val:.0f}" if weight_val > 0 else f"{weight_val:.0f}"
                 rules_triggered_formatted.append({
                     "name": rule_name,
-                    "weight": "",  # Weight info is in the explanation
-                    "evidence": "",
-                    "icon": "✅" if not rule_name.startswith(("clean_", "all_internal")) else "🔽",
+                    "weight": weight_str,
+                    "evidence": desc_val,
+                    "icon": "✅" if weight_val > 0 else "🔽",
                 })
 
         # Patterns detected

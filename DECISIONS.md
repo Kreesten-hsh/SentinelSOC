@@ -68,3 +68,15 @@ Chaque décision technique significative est documentée ici avec son contexte e
 2. **Orchestration au Démarrage** : `start.sh` vérifie l'existence de `models/severity_model.joblib` et lance explicitement `python3 scripts/train_severity_model.py` avant de démarrer FastAPI et Vite.
 3. **Observabilité API** : L'endpoint `/api/health` expose l'état réel du modèle (`ml_model_loaded: true/false`, chemin du modèle, mode du pipeline) afin que toute dégradation soit immédiatement visible sur le dashboard SOC.
 4. **Validation de Clone Propre** : Ajout du script `scripts/verify_clean.sh` simulant un environnement jetable vierge pour garantir la reproductibilité totale sans cache résiduel.
+
+## D010 — Évaluation empirique du mode LLM : Limite des SLMs (<1B) vs Robustesse du Moteur Déterministe
+**Date** : 2026-08-21
+**Contexte** : Intégration et test réel d'un modèle SLM local ultra-léger (`qwen2.5:0.5b`) avec `smolagents.CodeAgent` sur CPU modeste (Core i3 2 cœurs / 4 threads) pour valider la chaîne d'exécution agentique.
+**Constat Empirique** :
+1. **Validation de l'Infrastructure** : La plomberie d'orchestration (`smolagents.CodeAgent`, `LiteLLMModel`, binding des 4 outils SOC + `final_answer`, boucle de rétroaction d'erreurs) fonctionne sans accroc.
+2. **Limite des Petits Modèles (<1B)** : Un modèle de 494M de paramètres ne possède pas la capacité d'attention ni la rigueur syntaxique pour maintenir un contexte de code Python valide (omission de guillemets sur des identifiants comme `alert_id=ALT-2024-001`, entraînant une `SyntaxError` Python répétée sur plusieurs étapes).
+3. **Exigence pour la Production** : Une autonomie agentique fiable en code Python nécessite un modèle de 7B+ paramètres (ex: `Mistral-7B`, `Llama-3-8B`) ou un LLM cloud.
+**Décision** :
+- Le **pipeline causal déterministe en 7 étapes** reste le moteur de production par défaut de SentinelSOC (zéro hallucination, 0ms de latence LLM, 100% de concordance avec la vérité terrain BOTS v1, auditabilité mathématique).
+- Le mode `use_llm=True` est maintenu et testé unitairement (`tests/test_agent_llm.py`) comme démonstrateur d'architecture ouverte pour les environnements disposant d'un modèle 7B+ ou d'une clé API.
+

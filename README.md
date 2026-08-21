@@ -1,11 +1,11 @@
-# SentinelSOC 🛡️
+# SentinelSOC
 
 **Système d'Investigation & Triage d'Alertes SOC — Moteur Causal Déterministe & Support Agentic LLM**
 
 [![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
 [![FastAPI](https://img.shields.io/badge/backend-FastAPI-009688.svg)](https://fastapi.tiangolo.com/)
 [![React + Vite](https://img.shields.io/badge/frontend-React%2019%20%2B%20Vite-61dafb.svg)](https://vitejs.dev/)
-[![Tests](https://img.shields.io/badge/tests-78%2F78%20passing%20(100%25)-success.svg)](https://docs.pytest.org/)
+[![Tests](https://img.shields.io/badge/tests-79%2F79%20passing%20(100%25)-success.svg)](https://docs.pytest.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 ---
@@ -14,16 +14,17 @@
 
 SentinelSOC est une plateforme d'investigation et de triage de niveau **SOC Tier-2/3**. Il reçoit une alerte brute de sécurité (SIEM/IDS/EDR), extrait automatiquement les indicateurs de compromission (IOCs), interroge la télémétrie multi-sources (pare-feu Fortinet, authentification Windows Event Log 4624/4625, processus endpoint Sysmon EID 1, IDS Suricata), reconstitue la chaîne causale d'attaque, enrichit via Threat Intelligence, calcule un score de sévérité hybride (Règles explicites + ML RandomForest) et génère un rapport d'investigation structuré avec actions de remédiation immédiates.
 
-### Architecture Dual-Engine : Déterministe (Production) vs LLM (Expérimental)
-
-Pour concilier auditabilité industrielle et recherche agentique, SentinelSOC implémente deux modes d'orchestration :
+### Architecture Dual-Engine & Threat Intel Hybride
 
 1. **Pipeline Causal Déterministe (Moteur de Production par Défaut)** :
    - Exécution causale stricte en **7 étapes ordonnées** s'appuyant sur les contrats d'outils `smolagents` (`IOCExtractorTool`, `LogQueryTool`, `EventCorrelatorTool`, `ThreatIntelTool`, `SeverityScorer`).
    - **Avantages** : Zéro hallucination sur les IP/hashes, zéro latence d'inférence LLM, auditabilité mathématique complète et reproductibilité à 100% sans nécessiter de GPU ou de clé API.
-2. **Mode Agentic LLM (`use_llm=True` / `investigate_llm()`) (Expérimental / Roadmap)** :
-   - Orchestrateur `smolagents.CodeAgent` alimenté par LiteLLM / Ollama (`mistral:7b` ou tout LLM compatible).
-   - Conçu pour les investigations ouvertes nécessitant la génération dynamique de code Python. Le câblage des outils est testé et validé (`tests/test_agent_llm.py`), l'inférence réelle nécessite une instance locale Ollama active.
+2. **Mode Agentic LLM (`use_llm=True` / `investigate_llm()`) (Expérimental / Démonstrateur)** :
+   - Orchestrateur `smolagents.CodeAgent` compatible avec tout modèle local Ollama (`qwen2.5:0.5b` pour inférence CPU légère, ou `mistral:7b`) ou API distante.
+   - Initialisation, binding des outils et boucle d'exécution de code Python testés unitairement (`tests/test_agent_llm.py`).
+3. **Stratégie Threat Intelligence Hybride** :
+   - **Mode Local Déterministe (Par défaut)** : Requêtage instantané et reproductible hors-ligne sur `data/threat_intel/known_iocs.json`.
+   - **Enrichissement Live AbuseIPDB (Optionnel)** : Fallback transparent vers l'API REST AbuseIPDB v2 lorsque la variable `ABUSEIPDB_API_KEY` est renseignée. Testé unitairement avec mock dans `tests/test_tools.py`.
 
 ---
 

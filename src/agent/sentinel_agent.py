@@ -171,12 +171,18 @@ Conclude with a clear verdict (TRUE_POSITIVE, FALSE_POSITIVE, SUSPICIOUS) and re
         net_data = json.loads(net_logs_raw)
         matched_events = net_data.get("events", [])
 
+        action_net = (
+            f"Query network and perimeter telemetry for source IP '{query_src_ip}'"
+            if query_src_ip
+            else "Query network and perimeter telemetry for relevant network traffic"
+        )
+
         steps.append(InvestigationStep(
             step_number=2,
-            action=f"Query network and perimeter telemetry for source IP '{query_src_ip}'",
+            action=action_net,
             reasoning="Determine whether inbound/outbound connection volume, targeted ports, or IDS signatures indicate malicious probing",
             tool_used=self.log_tool.name,
-            query=f"src_ip={query_src_ip}, scenario_id={scenario_ref}",
+            query=f"src_ip={query_src_ip or '*'}, scenario_id={scenario_ref or '*'}",
             result_summary=f"Identified {len(matched_events)} matching network/IDS telemetry events.",
             events_found=len(matched_events),
             timestamp=datetime.now(UTC),
@@ -195,12 +201,19 @@ Conclude with a clear verdict (TRUE_POSITIVE, FALSE_POSITIVE, SUSPICIOUS) and re
         auth_data = json.loads(auth_logs_raw)
         host_events = auth_data.get("events", [])
 
+        target_entities = []
+        if query_user:
+            target_entities.append(f"user '{query_user}'")
+        if query_host:
+            target_entities.append(f"host '{query_host}'")
+        target_str = " and ".join(target_entities) if target_entities else "all active identities and hosts"
+
         steps.append(InvestigationStep(
             step_number=3,
-            action=f"Query authentication and endpoint activity for user '{query_user}' and host '{query_host}'",
+            action=f"Query authentication and endpoint activity for {target_str}",
             reasoning="Assess whether user account suffered brute forcing, unauthorized privilege escalation, or executed suspicious processes",
             tool_used=self.log_tool.name,
-            query=f"user={query_user}, host={query_host}, scenario_id={scenario_ref}",
+            query=f"user={query_user or '*'}, host={query_host or '*'}, scenario_id={scenario_ref or '*'}",
             result_summary=f"Retrieved {len(host_events)} authentication/endpoint events.",
             events_found=len(host_events),
             timestamp=datetime.now(UTC),
@@ -228,7 +241,7 @@ Conclude with a clear verdict (TRUE_POSITIVE, FALSE_POSITIVE, SUSPICIOUS) and re
             action="Cross-source temporal correlation and attack pattern reconstruction",
             reasoning="Synthesize event timeline across perimeter, authentication, and endpoint telemetry to identify multi-stage attack patterns",
             tool_used=self.corr_tool.name,
-            query=f"scenario_id={scenario_ref}, target_ip={query_src_ip}",
+            query=f"scenario_id={scenario_ref or '*'}, target_ip={query_src_ip or '*'}",
             result_summary=f"Correlated {corr_data.get('correlation_summary', {}).get('total_events_correlated', 0)} events. Detected {len(patterns)} attack pattern(s): {[p.get('pattern') for p in patterns]}.",
             events_found=len(patterns),
             timestamp=datetime.now(UTC),

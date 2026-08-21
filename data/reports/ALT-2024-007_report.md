@@ -1,6 +1,6 @@
 # Rapport d'Investigation — Alerte ALT-2024-007
 
-**Généré le** : 2026-08-21 09:05:43 UTC
+**Généré le** : 2026-08-21 10:10:24 UTC
 
 ---
 
@@ -54,10 +54,10 @@ L'alerte **PsExec Remote Execution Detected — ws-bobsmith → srv-dc01** prés
 
 L'analyse croisée des 7 événements télémétriques a identifié **1 pattern(s)** de corrélation :
 
-- **lateral_movement_dual_use_tool** (confiance 70%) : Dual-use administrative tool execution detected (['PsExec.exe']) accompanied by network logons across 4 distinct target hosts (['srv-fileserver', 'srv-dc01', '192.168.250.50', '192.168.250.60'])
+- **lateral_movement_dual_use_tool** (confiance 70%) : Dual-use administrative tool execution detected (['PsExec.exe']) accompanied by network logons across 4 distinct target hosts (['srv-dc01', '192.168.250.60', '192.168.250.50', 'srv-fileserver'])
 
 ### Patterns Détectés
-- **lateral_movement_dual_use_tool** (high) : Dual-use administrative tool execution detected (['PsExec.exe']) accompanied by network logons across 4 distinct target hosts (['srv-fileserver', 'srv-dc01', '192.168.250.50', '192.168.250.60'])
+- **lateral_movement_dual_use_tool** (high) : Dual-use administrative tool execution detected (['PsExec.exe']) accompanied by network logons across 4 distinct target hosts (['srv-dc01', '192.168.250.60', '192.168.250.50', 'srv-fileserver'])
 
 ---
 
@@ -80,8 +80,8 @@ L'analyse croisée des 7 événements télémétriques a identifié **1 pattern(
 
 ### Règles Déclenchées
 
-- ✅ pattern_lateral_movement →  pts — __
-- 🔽 all_internal_traffic →  pts — __
+- ✅ pattern_lateral_movement → +20 pts — _Dual-use admin tool with network logons across multiple hosts_
+- 🔽 all_internal_traffic → -20 pts — _All observed network traffic is internal — no external communication_
 
 ### Top Features ML
 

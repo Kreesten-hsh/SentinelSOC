@@ -50,10 +50,10 @@ L'agent a exécuté sa chaîne de raisonnement en 7 étapes causales strictes :
 - **Requête / Entrées** : `src_ip=10.0.0.88, scenario_id=scenario_05_reconnaissance`
 - **Résultat intermédiaire** : Identified 29 matching network/IDS telemetry events.
 
-### Étape 3 : Query authentication and endpoint activity for user 'None' and host 'None'
+### Étape 3 : Query authentication and endpoint activity for all active identities and hosts
 - **Tool mobilisé** : `query_logs`
 - **Raisonnement** : Assess whether user account suffered brute forcing, unauthorized privilege escalation, or executed suspicious processes
-- **Requête / Entrées** : `user=None, host=None, scenario_id=scenario_05_reconnaissance`
+- **Requête / Entrées** : `user=*, host=*, scenario_id=scenario_05_reconnaissance`
 - **Résultat intermédiaire** : Retrieved 29 authentication/endpoint events.
 
 ### Étape 4 : Cross-source temporal correlation and attack pattern reconstruction

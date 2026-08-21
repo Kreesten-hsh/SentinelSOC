@@ -1,6 +1,6 @@
 # Rapport d'Investigation — Alerte ALT-2024-003
 
-**Généré le** : 2026-08-21 09:05:43 UTC
+**Généré le** : 2026-08-21 10:10:22 UTC
 
 ---
 
@@ -80,9 +80,9 @@ L'analyse croisée des 8 événements télémétriques a identifié **1 pattern(
 
 ### Règles Déclenchées
 
-- ✅ ti_malicious_high_confidence →  pts — __
-- ✅ pattern_c2_exfiltration →  pts — __
-- ✅ external_dest_ip →  pts — __
+- ✅ ti_malicious_high_confidence → +40 pts — _IOC flagged malicious with confidence >= 0.85 in threat intel_
+- ✅ pattern_c2_exfiltration → +40 pts — _Command-and-control or data exfiltration to external IP_
+- ✅ external_dest_ip → +10 pts — _Communication with at least one external (publicly routable) IP_
 
 ### Top Features ML
 

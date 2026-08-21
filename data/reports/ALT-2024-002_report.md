@@ -1,6 +1,6 @@
 # Rapport d'Investigation — Alerte ALT-2024-002
 
-**Généré le** : 2026-08-21 09:05:43 UTC
+**Généré le** : 2026-08-21 10:10:22 UTC
 
 ---
 
@@ -100,10 +100,10 @@ L'analyse croisée des 33 événements télémétriques a identifié **1 pattern
 
 ### Règles Déclenchées
 
-- ✅ ti_malicious_high_confidence →  pts — __
-- ✅ pattern_brute_force_success →  pts — __
-- ✅ after_hours_activity →  pts — __
-- 🔽 all_internal_traffic →  pts — __
+- ✅ ti_malicious_high_confidence → +40 pts — _IOC flagged malicious with confidence >= 0.85 in threat intel_
+- ✅ pattern_brute_force_success → +35 pts — _Brute force with subsequent successful authentication detected_
+- ✅ after_hours_activity → +15 pts — _Primary activity occurred outside business hours (22:00-06:00)_
+- 🔽 all_internal_traffic → -20 pts — _All observed network traffic is internal — no external communication_
 
 ### Top Features ML
 
@@ -143,7 +143,7 @@ L'analyse croisée des 33 événements télémétriques a identifié **1 pattern
 - **Raisonnement** : Determine whether inbound/outbound connection volume, targeted ports, or IDS signatures indicate malicious probing
 - **Résultat** : Identified 31 matching network/IDS telemetry events.
 
-### Étape 3 — Query authentication and endpoint activity for user 'None' and host 'None'
+### Étape 3 — Query authentication and endpoint activity for all active identities and hosts
 
 - **Tool** : `query_logs`
 - **Raisonnement** : Assess whether user account suffered brute forcing, unauthorized privilege escalation, or executed suspicious processes

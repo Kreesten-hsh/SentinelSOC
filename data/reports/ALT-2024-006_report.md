@@ -1,6 +1,6 @@
 # Rapport d'Investigation — Alerte ALT-2024-006
 
-**Généré le** : 2026-08-21 09:05:43 UTC
+**Généré le** : 2026-08-21 10:10:24 UTC
 
 ---
 
@@ -71,8 +71,8 @@ _Aucun IOC vérifié._
 
 ### Règles Déclenchées
 
-- ✅ pattern_scheduled_task →  pts — __
-- 🔽 all_internal_traffic →  pts — __
+- 🔽 pattern_scheduled_task → -15 pts — _Process execution triggered by scheduled task (benign indicator)_
+- 🔽 all_internal_traffic → -20 pts — _All observed network traffic is internal — no external communication_
 
 ### Top Features ML
 
@@ -103,7 +103,7 @@ _Aucun IOC vérifié._
 - **Raisonnement** : Extract all atomic observables (IPs, domains, hashes, users, hosts) from raw alert payload
 - **Résultat** : Extracted 2 IOCs: 0 IPs, 0 hashes, 1 users, 0 domains.
 
-### Étape 2 — Query network and perimeter telemetry for source IP 'None'
+### Étape 2 — Query network and perimeter telemetry for relevant network traffic
 
 - **Tool** : `query_logs`
 - **Raisonnement** : Determine whether inbound/outbound connection volume, targeted ports, or IDS signatures indicate malicious probing

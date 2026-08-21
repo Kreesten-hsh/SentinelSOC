@@ -192,3 +192,25 @@ class TestThreatIntelTool:
         res = json.loads(tool.forward(ioc_value="8.8.8.8"))
         assert res["reputation"] == "unknown"
         assert res["confidence"] == 0.0
+
+    def test_lookup_abuseipdb_api_fallback(self) -> None:
+        from unittest.mock import MagicMock, patch
+
+        tool = ThreatIntelTool()
+        mock_resp = MagicMock()
+        mock_resp.status_code = 200
+        mock_resp.json.return_value = {
+            "data": {
+                "ipAddress": "198.51.100.23",
+                "abuseConfidenceScore": 85,
+                "countryCode": "US",
+            }
+        }
+
+        with patch.dict("os.environ", {"ABUSEIPDB_API_KEY": "fake_test_key"}):
+            with patch("httpx.get", return_value=mock_resp) as mock_get:
+                res = json.loads(tool.forward(ioc_value="198.51.100.23"))
+                assert res["reputation"] == "malicious"
+                assert res["confidence"] == 0.85
+                assert res["source"] == "abuseipdb_api"
+                mock_get.assert_called_once()

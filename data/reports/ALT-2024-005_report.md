@@ -1,6 +1,6 @@
 # Rapport d'Investigation — Alerte ALT-2024-005
 
-**Généré le** : 2026-08-21 09:05:43 UTC
+**Généré le** : 2026-08-21 10:10:23 UTC
 
 ---
 
@@ -99,8 +99,8 @@ L'analyse croisée des 29 événements télémétriques a identifié **1 pattern
 
 ### Règles Déclenchées
 
-- ✅ pattern_recon_only →  pts — __
-- 🔽 all_internal_traffic →  pts — __
+- ✅ pattern_recon_only → +10 pts — _Network scanning without subsequent execution_
+- 🔽 all_internal_traffic → -20 pts — _All observed network traffic is internal — no external communication_
 
 ### Top Features ML
 
@@ -138,7 +138,7 @@ L'analyse croisée des 29 événements télémétriques a identifié **1 pattern
 - **Raisonnement** : Determine whether inbound/outbound connection volume, targeted ports, or IDS signatures indicate malicious probing
 - **Résultat** : Identified 29 matching network/IDS telemetry events.
 
-### Étape 3 — Query authentication and endpoint activity for user 'None' and host 'None'
+### Étape 3 — Query authentication and endpoint activity for all active identities and hosts
 
 - **Tool** : `query_logs`
 - **Raisonnement** : Assess whether user account suffered brute forcing, unauthorized privilege escalation, or executed suspicious processes

@@ -100,6 +100,6 @@ Rule score: 0.0/100 (2 rules triggered)
 ML confidence: 0.70 (trained model)
 Combined: 40% × 0.0 + 60% × 70.0 = 42.0
 Severity: MEDIUM
-  [correlation] pattern_lateral_movement: +20 pts — Dual-use administrative tool execution detected (['PsExec.exe']) accompanied by network logons across 4 distinct target hosts (['srv-dc01', 'srv-fileserver', '192.168.250.60', '192.168.250.50'])
+  [correlation] pattern_lateral_movement: +20 pts — Dual-use administrative tool execution detected (['PsExec.exe']) accompanied by network logons across 4 distinct target hosts (['192.168.250.50', 'srv-dc01', '192.168.250.60', 'srv-fileserver'])
   [network] all_internal_traffic: -20 pts — No external IP destinations observed in correlated events
 ```

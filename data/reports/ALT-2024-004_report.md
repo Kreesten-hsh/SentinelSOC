@@ -1,6 +1,6 @@
 # Rapport d'Investigation — Alerte ALT-2024-004
 
-**Généré le** : 2026-08-21 09:05:43 UTC
+**Généré le** : 2026-08-21 10:10:23 UTC
 
 ---
 
@@ -79,11 +79,11 @@ L'analyse croisée des 7 événements télémétriques a identifié **1 pattern(
 
 ### Règles Déclenchées
 
-- ✅ ti_malicious_high_confidence →  pts — __
-- ✅ pattern_c2_exfiltration →  pts — __
-- ✅ after_hours_activity →  pts — __
-- ✅ external_dest_ip →  pts — __
-- ✅ high_volume_outbound →  pts — __
+- ✅ ti_malicious_high_confidence → +40 pts — _IOC flagged malicious with confidence >= 0.85 in threat intel_
+- ✅ pattern_c2_exfiltration → +40 pts — _Command-and-control or data exfiltration to external IP_
+- ✅ after_hours_activity → +15 pts — _Primary activity occurred outside business hours (22:00-06:00)_
+- ✅ external_dest_ip → +10 pts — _Communication with at least one external (publicly routable) IP_
+- ✅ high_volume_outbound → +15 pts — _Large outbound data transfer detected (> 10MB)_
 
 ### Top Features ML
 

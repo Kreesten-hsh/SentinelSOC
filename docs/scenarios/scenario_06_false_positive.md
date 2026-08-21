@@ -47,10 +47,10 @@ L'agent a exécuté sa chaîne de raisonnement en 7 étapes causales strictes :
 - **Requête / Entrées** : `content={"host": "srv-dc01", "user": "WAYNE\\sysadmin.jones", "process": "powershell.exe...`
 - **Résultat intermédiaire** : Extracted 2 IOCs: 0 IPs, 0 hashes, 1 users, 0 domains.
 
-### Étape 2 : Query network and perimeter telemetry for source IP 'None'
+### Étape 2 : Query network and perimeter telemetry for relevant network traffic
 - **Tool mobilisé** : `query_logs`
 - **Raisonnement** : Determine whether inbound/outbound connection volume, targeted ports, or IDS signatures indicate malicious probing
-- **Requête / Entrées** : `src_ip=None, scenario_id=scenario_06_false_positive`
+- **Requête / Entrées** : `src_ip=*, scenario_id=scenario_06_false_positive`
 - **Résultat intermédiaire** : Identified 4 matching network/IDS telemetry events.
 
 ### Étape 3 : Query authentication and endpoint activity for user 'WAYNE\sysadmin.jones' and host 'srv-dc01'
@@ -62,7 +62,7 @@ L'agent a exécuté sa chaîne de raisonnement en 7 étapes causales strictes :
 ### Étape 4 : Cross-source temporal correlation and attack pattern reconstruction
 - **Tool mobilisé** : `correlate_events`
 - **Raisonnement** : Synthesize event timeline across perimeter, authentication, and endpoint telemetry to identify multi-stage attack patterns
-- **Requête / Entrées** : `scenario_id=scenario_06_false_positive, target_ip=None`
+- **Requête / Entrées** : `scenario_id=scenario_06_false_positive, target_ip=*`
 - **Résultat intermédiaire** : Correlated 4 events. Detected 1 attack pattern(s): ['scheduled_task_triggered_execution'].
 
 ### Étape 5 : Query Threat Intelligence feeds for all extracted external IOCs

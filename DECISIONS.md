@@ -45,3 +45,17 @@ Chaque décision technique significative est documentée ici avec son contexte e
 2. Déportation de la vérité terrain dans un fichier isolé `data/scenarios/ground_truth.json`, strictement non chargé par le `LogStore` ni accessible aux tools de l'agent. Ce fichier sert exclusivement aux benchmarks et à l'évaluation post-hoc de la justesse du raisonnement de l'agent.
 **Justification** : Évite tout biais d'évaluation ou raccourci d'inférence pour l'agent. Le raisonnement de l'agent doit reposer à 100% sur la corrélation authentique de faits télémétriques.
 
+## D008 — Décision purement causale et élimination de tout couplage aux métadonnées d'alerte
+**Date** : 2026-08-21
+**Contexte** :
+(a) Dans la première implémentation, le moteur de synthèse (`_synthesize_verdict`) inspectait des champs d'alerte (`alert.scenario_id`, sous-chaînes de `alert.title` ou `alert.description`), créant un biais méthodologique. Par ailleurs, le pattern de corrélation `command_and_control_or_exfiltration` se déclenchait sur tout événement pare-feu avec `bytes_sent > 1000` sans valider la destination, ce qui faussait le trafic LDAP interne (scénario 06).
+**Décision** :
+(b) Intégration dans `src/tools/correlator.py` d'une fonction `is_external_ip` basée sur le module standard `ipaddress`, garantissant que seules les communications vers des adresses publiquement routables (hors RFC1918, loopback, multicast, broadcast) sont qualifiées de C2 ou d'exfiltration.
+(c) Ajout de 3 patterns de corrélation génériques :
+  - `lateral_movement_dual_use_tool` : usage d'outils d'administration à double usage (PsExec, PAExec, WMIC, wmiexec, WinRM) corrélé à des connexions réseau (logon type 3) vers au moins 2 hôtes distincts.
+  - `reconnaissance_only` : détection de balayage réseau sans exécution de processus endpoint consécutive.
+  - `scheduled_task_triggered_execution` : exécution de processus sur l'hôte déclenchée et encadrée par une tâche planifiée système (Event ID 106).
+(d) Réécriture intégrale de `_synthesize_verdict` dans `src/agent/sentinel_agent.py` : la décision analytique est strictement découplée de l'alerte brute et s'appuie à 100% sur la matrice de corrélation et la Threat Intelligence.
+(e) Ajout d'un test anti-triche (`test_anti_cheat_no_scenario_id`) dans `tests/test_agent.py` qui garantit qu'une alerte dépourvue de tout identifiant ou métadonnée produit un verdict et une action strictement identiques.
+
+

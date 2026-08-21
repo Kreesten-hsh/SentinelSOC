@@ -8,7 +8,7 @@ from pathlib import Path
 import pytest
 
 from src.data.log_store import LogStore
-from src.tools.correlator import EventCorrelatorTool
+from src.tools.correlator import EventCorrelatorTool, is_external_ip
 from src.tools.ioc_extractor import IOCExtractorTool, extract_iocs_from_text
 from src.tools.log_query import LogQueryTool
 from src.tools.threat_intel import ThreatIntelTool
@@ -22,6 +22,32 @@ def scenarios_path() -> Path:
 @pytest.fixture
 def log_store(scenarios_path: Path) -> LogStore:
     return LogStore(scenarios_path)
+
+
+# ──────────────── External IP Helper Tests ────────────────
+
+
+class TestIPClassification:
+    def test_is_external_ip_public_addresses(self) -> None:
+        assert is_external_ip("23.22.63.114") is True
+        assert is_external_ip("40.80.148.42") is True
+        assert is_external_ip("185.141.27.88") is True
+        assert is_external_ip("91.234.99.42") is True
+        assert is_external_ip("198.71.247.91") is True
+        assert is_external_ip("8.8.8.8") is True
+
+    def test_is_external_ip_private_rfc1918(self) -> None:
+        assert is_external_ip("192.168.250.70") is False
+        assert is_external_ip("192.168.1.1") is False
+        assert is_external_ip("10.0.0.88") is False
+        assert is_external_ip("172.16.0.5") is False
+
+    def test_is_external_ip_broadcast_loopback_invalid(self) -> None:
+        assert is_external_ip("192.168.250.255") is False
+        assert is_external_ip("127.0.0.1") is False
+        assert is_external_ip("255.255.255.255") is False
+        assert is_external_ip("invalid_ip") is False
+        assert is_external_ip("") is False
 
 
 # ──────────────── IOC Extractor Tool Tests ────────────────
@@ -98,7 +124,8 @@ class TestEventCorrelatorTool:
 
         assert res["correlation_summary"]["total_events_correlated"] == 14
         assert "23.22.63.114" in res["correlation_summary"]["unique_ips"]
-        assert len(res["detected_attack_patterns"]) >= 1
+        patterns = [p["pattern"] for p in res["detected_attack_patterns"]]
+        assert "reconnaissance_followed_by_execution" in patterns
 
     def test_correlate_scenario_02_brute_force(self, log_store: LogStore) -> None:
         tool = EventCorrelatorTool(log_store=log_store)
@@ -107,6 +134,29 @@ class TestEventCorrelatorTool:
         assert res["correlation_summary"]["total_events_correlated"] == 33
         patterns = [p["pattern"] for p in res["detected_attack_patterns"]]
         assert "brute_force_followed_by_success" in patterns
+
+    def test_correlate_scenario_05_reconnaissance_only(self, log_store: LogStore) -> None:
+        tool = EventCorrelatorTool(log_store=log_store)
+        res = json.loads(tool.forward(scenario_id="scenario_05_reconnaissance"))
+
+        patterns = [p["pattern"] for p in res["detected_attack_patterns"]]
+        assert "reconnaissance_only" in patterns
+        assert "reconnaissance_followed_by_execution" not in patterns
+
+    def test_correlate_scenario_06_scheduled_task_only(self, log_store: LogStore) -> None:
+        tool = EventCorrelatorTool(log_store=log_store)
+        res = json.loads(tool.forward(scenario_id="scenario_06_false_positive"))
+
+        patterns = [p["pattern"] for p in res["detected_attack_patterns"]]
+        assert "scheduled_task_triggered_execution" in patterns
+        assert "command_and_control_or_exfiltration" not in patterns  # Confirms external IP fix!
+
+    def test_correlate_scenario_07_lateral_movement_dual_use(self, log_store: LogStore) -> None:
+        tool = EventCorrelatorTool(log_store=log_store)
+        res = json.loads(tool.forward(scenario_id="scenario_07_ambiguous_lateral"))
+
+        patterns = [p["pattern"] for p in res["detected_attack_patterns"]]
+        assert "lateral_movement_dual_use_tool" in patterns
 
     def test_correlate_no_events_returns_empty_structure(self, log_store: LogStore) -> None:
         tool = EventCorrelatorTool(log_store=log_store)

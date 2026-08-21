@@ -14,7 +14,7 @@
         "context": "alert_ALT-2024-001"
       }
     ],
-    "extraction_timestamp": "2026-08-20T21:26:26.668604Z"
+    "extraction_timestamp": "2026-08-21T08:40:54.202881Z"
   },
   "steps": [
     {
@@ -25,7 +25,7 @@
       "query": "content={\"src_ip\": \"23.22.63.114\", \"dest_ip\": \"192.168.250.70\", \"dest_port\": 80, \"signat...",
       "result_summary": "Extracted 2 IOCs: 2 IPs, 0 hashes, 0 users, 0 domains.",
       "events_found": 2,
-      "timestamp": "2026-08-20T21:26:26.668637Z"
+      "timestamp": "2026-08-21T08:40:54.202909Z"
     },
     {
       "step_number": 2,
@@ -35,7 +35,7 @@
       "query": "src_ip=23.22.63.114, scenario_id=scenario_01_web_defacement",
       "result_summary": "Identified 13 matching network/IDS telemetry events.",
       "events_found": 13,
-      "timestamp": "2026-08-20T21:26:26.669643Z"
+      "timestamp": "2026-08-21T08:40:54.203772Z"
     },
     {
       "step_number": 3,
@@ -45,7 +45,7 @@
       "query": "user=None, host=None, scenario_id=scenario_01_web_defacement",
       "result_summary": "Retrieved 14 authentication/endpoint events.",
       "events_found": 14,
-      "timestamp": "2026-08-20T21:26:26.670816Z"
+      "timestamp": "2026-08-21T08:40:54.204534Z"
     },
     {
       "step_number": 4,
@@ -53,9 +53,9 @@
       "reasoning": "Synthesize event timeline across perimeter, authentication, and endpoint telemetry to identify multi-stage attack patterns",
       "tool_used": "correlate_events",
       "query": "scenario_id=scenario_01_web_defacement, target_ip=23.22.63.114",
-      "result_summary": "Correlated 14 events. Detected 2 attack pattern(s): ['reconnaissance_followed_by_execution', 'command_and_control_or_exfiltration'].",
-      "events_found": 2,
-      "timestamp": "2026-08-20T21:26:26.671276Z"
+      "result_summary": "Correlated 14 events. Detected 1 attack pattern(s): ['reconnaissance_followed_by_execution'].",
+      "events_found": 1,
+      "timestamp": "2026-08-21T08:40:54.205479Z"
     },
     {
       "step_number": 5,
@@ -65,7 +65,7 @@
       "query": "IOCs: ['23.22.63.114', '192.168.250.70']",
       "result_summary": "Evaluated 2 indicators. Malicious tags found: [['web-scanner', 'acunetix', 'vulnerability-assessment']].",
       "events_found": 1,
-      "timestamp": "2026-08-20T21:26:26.671517Z"
+      "timestamp": "2026-08-21T08:40:54.205953Z"
     },
     {
       "step_number": 6,
@@ -75,7 +75,7 @@
       "query": "Analytical evaluation",
       "result_summary": "Verdict: TRUE_POSITIVE | Recommended Action: CONTAIN",
       "events_found": 1,
-      "timestamp": "2026-08-20T21:26:26.671568Z"
+      "timestamp": "2026-08-21T08:40:54.206052Z"
     }
   ],
   "log_events": [
@@ -362,12 +362,6 @@
       "events": [],
       "pattern": "reconnaissance_followed_by_execution",
       "confidence": 0.9
-    },
-    {
-      "description": "Endpoint activity directly correlates with outbound network communication/IDS alert",
-      "events": [],
-      "pattern": "command_and_control_or_exfiltration",
-      "confidence": 0.9
     }
   ],
   "threat_intel": [
@@ -410,6 +404,6 @@
   "severity_score": null,
   "verdict": "true_positive",
   "recommended_action": "contain",
-  "started_at": "2026-08-20T21:26:26.667705Z",
-  "completed_at": "2026-08-20T21:26:26.671606Z"
+  "started_at": "2026-08-21T08:40:54.201977Z",
+  "completed_at": "2026-08-21T08:40:54.206151Z"
 }

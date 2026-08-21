@@ -24,7 +24,7 @@
         "context": "user"
       }
     ],
-    "extraction_timestamp": "2026-08-20T21:26:26.684886Z"
+    "extraction_timestamp": "2026-08-21T08:40:54.218234Z"
   },
   "steps": [
     {
@@ -35,7 +35,7 @@
       "query": "content={\"src_ip\": \"192.168.250.100\", \"dest_ip\": \"185.141.27.88\", \"dest_port\": 443, \"sig...",
       "result_summary": "Extracted 4 IOCs: 2 IPs, 0 hashes, 1 users, 0 domains.",
       "events_found": 4,
-      "timestamp": "2026-08-20T21:26:26.684911Z"
+      "timestamp": "2026-08-21T08:40:54.218259Z"
     },
     {
       "step_number": 2,
@@ -45,7 +45,7 @@
       "query": "src_ip=192.168.250.100, scenario_id=scenario_03_ransomware",
       "result_summary": "Identified 2 matching network/IDS telemetry events.",
       "events_found": 2,
-      "timestamp": "2026-08-20T21:26:26.685283Z"
+      "timestamp": "2026-08-21T08:40:54.218603Z"
     },
     {
       "step_number": 3,
@@ -55,7 +55,7 @@
       "query": "user=WAYNE\\bob.smith, host=ws-bobsmith, scenario_id=scenario_03_ransomware",
       "result_summary": "Retrieved 6 authentication/endpoint events.",
       "events_found": 6,
-      "timestamp": "2026-08-20T21:26:26.685866Z"
+      "timestamp": "2026-08-21T08:40:54.219213Z"
     },
     {
       "step_number": 4,
@@ -65,7 +65,7 @@
       "query": "scenario_id=scenario_03_ransomware, target_ip=192.168.250.100",
       "result_summary": "Correlated 8 events. Detected 1 attack pattern(s): ['command_and_control_or_exfiltration'].",
       "events_found": 1,
-      "timestamp": "2026-08-20T21:26:26.686493Z"
+      "timestamp": "2026-08-21T08:40:54.219688Z"
     },
     {
       "step_number": 5,
@@ -75,7 +75,7 @@
       "query": "IOCs: ['192.168.250.100', '185.141.27.88']",
       "result_summary": "Evaluated 2 indicators. Malicious tags found: [['c2', 'ransomware', 'cerber']].",
       "events_found": 1,
-      "timestamp": "2026-08-20T21:26:26.687340Z"
+      "timestamp": "2026-08-21T08:40:54.220075Z"
     },
     {
       "step_number": 6,
@@ -85,7 +85,7 @@
       "query": "Analytical evaluation",
       "result_summary": "Verdict: TRUE_POSITIVE | Recommended Action: CONTAIN",
       "events_found": 1,
-      "timestamp": "2026-08-20T21:26:26.687401Z"
+      "timestamp": "2026-08-21T08:40:54.220098Z"
     }
   ],
   "log_events": [
@@ -250,7 +250,7 @@
   ],
   "correlations": [
     {
-      "description": "Endpoint activity directly correlates with outbound network communication/IDS alert",
+      "description": "Endpoint activity directly correlates with outbound external communication/IDS alert",
       "events": [],
       "pattern": "command_and_control_or_exfiltration",
       "confidence": 0.9
@@ -297,6 +297,6 @@
   "severity_score": null,
   "verdict": "true_positive",
   "recommended_action": "contain",
-  "started_at": "2026-08-20T21:26:26.683970Z",
-  "completed_at": "2026-08-20T21:26:26.687460Z"
+  "started_at": "2026-08-21T08:40:54.217535Z",
+  "completed_at": "2026-08-21T08:40:54.220127Z"
 }

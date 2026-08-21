@@ -14,7 +14,7 @@
         "context": "user"
       }
     ],
-    "extraction_timestamp": "2026-08-20T21:26:26.704302Z"
+    "extraction_timestamp": "2026-08-21T08:40:54.237568Z"
   },
   "steps": [
     {
@@ -25,7 +25,7 @@
       "query": "content={\"host\": \"srv-dc01\", \"user\": \"WAYNE\\\\sysadmin.jones\", \"process\": \"powershell.exe...",
       "result_summary": "Extracted 2 IOCs: 0 IPs, 0 hashes, 1 users, 0 domains.",
       "events_found": 2,
-      "timestamp": "2026-08-20T21:26:26.704322Z"
+      "timestamp": "2026-08-21T08:40:54.237587Z"
     },
     {
       "step_number": 2,
@@ -35,7 +35,7 @@
       "query": "src_ip=None, scenario_id=scenario_06_false_positive",
       "result_summary": "Identified 4 matching network/IDS telemetry events.",
       "events_found": 4,
-      "timestamp": "2026-08-20T21:26:26.704776Z"
+      "timestamp": "2026-08-21T08:40:54.238057Z"
     },
     {
       "step_number": 3,
@@ -45,7 +45,7 @@
       "query": "user=WAYNE\\sysadmin.jones, host=srv-dc01, scenario_id=scenario_06_false_positive",
       "result_summary": "Retrieved 2 authentication/endpoint events.",
       "events_found": 2,
-      "timestamp": "2026-08-20T21:26:26.705131Z"
+      "timestamp": "2026-08-21T08:40:54.238392Z"
     },
     {
       "step_number": 4,
@@ -53,9 +53,9 @@
       "reasoning": "Synthesize event timeline across perimeter, authentication, and endpoint telemetry to identify multi-stage attack patterns",
       "tool_used": "correlate_events",
       "query": "scenario_id=scenario_06_false_positive, target_ip=None",
-      "result_summary": "Correlated 4 events. Detected 1 attack pattern(s): ['command_and_control_or_exfiltration'].",
+      "result_summary": "Correlated 4 events. Detected 1 attack pattern(s): ['scheduled_task_triggered_execution'].",
       "events_found": 1,
-      "timestamp": "2026-08-20T21:26:26.705535Z"
+      "timestamp": "2026-08-21T08:40:54.238935Z"
     },
     {
       "step_number": 5,
@@ -65,7 +65,7 @@
       "query": "IOCs: []",
       "result_summary": "Evaluated 0 indicators. Malicious tags found: [].",
       "events_found": 0,
-      "timestamp": "2026-08-20T21:26:26.705560Z"
+      "timestamp": "2026-08-21T08:40:54.238966Z"
     },
     {
       "step_number": 6,
@@ -75,7 +75,7 @@
       "query": "Analytical evaluation",
       "result_summary": "Verdict: FALSE_POSITIVE | Recommended Action: IGNORE",
       "events_found": 1,
-      "timestamp": "2026-08-20T21:26:26.705599Z"
+      "timestamp": "2026-08-21T08:40:54.238992Z"
     }
   ],
   "log_events": [
@@ -160,16 +160,16 @@
   ],
   "correlations": [
     {
-      "description": "Endpoint activity directly correlates with outbound network communication/IDS alert",
+      "description": "Endpoint process execution correlates with scheduled task trigger (['Weekly-AD-Maintenance'])",
       "events": [],
-      "pattern": "command_and_control_or_exfiltration",
-      "confidence": 0.9
+      "pattern": "scheduled_task_triggered_execution",
+      "confidence": 0.7
     }
   ],
   "threat_intel": [],
   "severity_score": null,
   "verdict": "false_positive",
   "recommended_action": "ignore",
-  "started_at": "2026-08-20T21:26:26.703568Z",
-  "completed_at": "2026-08-20T21:26:26.705637Z"
+  "started_at": "2026-08-21T08:40:54.236795Z",
+  "completed_at": "2026-08-21T08:40:54.239036Z"
 }

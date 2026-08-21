@@ -29,7 +29,7 @@
         "context": "user"
       }
     ],
-    "extraction_timestamp": "2026-08-20T21:26:26.708519Z"
+    "extraction_timestamp": "2026-08-21T08:40:54.241558Z"
   },
   "steps": [
     {
@@ -40,7 +40,7 @@
       "query": "content={\"src_ip\": \"192.168.250.100\", \"dest_ip\": \"192.168.250.50\", \"host\": \"ws-bobsmith\"...",
       "result_summary": "Extracted 5 IOCs: 2 IPs, 0 hashes, 1 users, 0 domains.",
       "events_found": 5,
-      "timestamp": "2026-08-20T21:26:26.708557Z"
+      "timestamp": "2026-08-21T08:40:54.241585Z"
     },
     {
       "step_number": 2,
@@ -50,7 +50,7 @@
       "query": "src_ip=192.168.250.100, scenario_id=scenario_07_ambiguous_lateral",
       "result_summary": "Identified 4 matching network/IDS telemetry events.",
       "events_found": 4,
-      "timestamp": "2026-08-20T21:26:26.709117Z"
+      "timestamp": "2026-08-21T08:40:54.242026Z"
     },
     {
       "step_number": 3,
@@ -60,7 +60,7 @@
       "query": "user=WAYNE\\bob.smith, host=ws-bobsmith, scenario_id=scenario_07_ambiguous_lateral",
       "result_summary": "Retrieved 2 authentication/endpoint events.",
       "events_found": 2,
-      "timestamp": "2026-08-20T21:26:26.709524Z"
+      "timestamp": "2026-08-21T08:40:54.242486Z"
     },
     {
       "step_number": 4,
@@ -68,9 +68,9 @@
       "reasoning": "Synthesize event timeline across perimeter, authentication, and endpoint telemetry to identify multi-stage attack patterns",
       "tool_used": "correlate_events",
       "query": "scenario_id=scenario_07_ambiguous_lateral, target_ip=192.168.250.100",
-      "result_summary": "Correlated 7 events. Detected 1 attack pattern(s): ['command_and_control_or_exfiltration'].",
+      "result_summary": "Correlated 7 events. Detected 1 attack pattern(s): ['lateral_movement_dual_use_tool'].",
       "events_found": 1,
-      "timestamp": "2026-08-20T21:26:26.710251Z"
+      "timestamp": "2026-08-21T08:40:54.243462Z"
     },
     {
       "step_number": 5,
@@ -80,7 +80,7 @@
       "query": "IOCs: ['192.168.250.100', '192.168.250.50']",
       "result_summary": "Evaluated 2 indicators. Malicious tags found: [].",
       "events_found": 0,
-      "timestamp": "2026-08-20T21:26:26.710977Z"
+      "timestamp": "2026-08-21T08:40:54.244810Z"
     },
     {
       "step_number": 6,
@@ -90,7 +90,7 @@
       "query": "Analytical evaluation",
       "result_summary": "Verdict: SUSPICIOUS | Recommended Action: ESCALATE",
       "events_found": 1,
-      "timestamp": "2026-08-20T21:26:26.711037Z"
+      "timestamp": "2026-08-21T08:40:54.244868Z"
     }
   ],
   "log_events": [
@@ -232,10 +232,10 @@
   ],
   "correlations": [
     {
-      "description": "Endpoint activity directly correlates with outbound network communication/IDS alert",
+      "description": "Dual-use administrative tool execution detected (['PsExec.exe']) accompanied by network logons across 4 distinct target hosts (['srv-dc01', 'srv-fileserver', '192.168.250.50', '192.168.250.60'])",
       "events": [],
-      "pattern": "command_and_control_or_exfiltration",
-      "confidence": 0.9
+      "pattern": "lateral_movement_dual_use_tool",
+      "confidence": 0.7
     }
   ],
   "threat_intel": [
@@ -272,6 +272,6 @@
   "severity_score": null,
   "verdict": "suspicious",
   "recommended_action": "escalate",
-  "started_at": "2026-08-20T21:26:26.707341Z",
-  "completed_at": "2026-08-20T21:26:26.711105Z"
+  "started_at": "2026-08-21T08:40:54.240354Z",
+  "completed_at": "2026-08-21T08:40:54.244994Z"
 }

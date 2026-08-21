@@ -16,11 +16,10 @@ from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
-from src.agent.prompts import INVESTIGATION_SYSTEM_PROMPT, INVESTIGATION_TASK_TEMPLATE
+from src.agent.prompts import INVESTIGATION_SYSTEM_PROMPT
 from src.data.log_store import LogStore
 from src.models.alert import (
     Alert,
-    AlertStatus,
     CorrelationFinding,
     IOC,
     IOCCollection,
@@ -28,7 +27,6 @@ from src.models.alert import (
     InvestigationResult,
     InvestigationStep,
     LogEvent,
-    LogSourceType,
     RecommendedAction,
     ThreatIntelResult,
     Verdict,
@@ -75,14 +73,13 @@ class SentinelInvestigationAgent:
                 system_prompt=INVESTIGATION_SYSTEM_PROMPT,
                 max_steps=8,
             )
-        except Exception as err:
+        except Exception:
             self._llm_agent = None
 
     def investigate(self, alert: Alert) -> InvestigationResult:
         """Execute a complete, structured investigation on a raw alert."""
         started_at = datetime.now(UTC)
         steps: list[InvestigationStep] = []
-        collected_events: list[LogEvent] = []
         threat_intel_results: list[ThreatIntelResult] = []
         correlations: list[CorrelationFinding] = []
 
@@ -152,7 +149,7 @@ class SentinelInvestigationAgent:
 
         # ── Step 3: Query Authentication & Endpoint Logs ──
         query_user = user_val or (ioc_collection.users[0].value if ioc_collection.users else None)
-        query_host = host_val or None
+        query_host = host_val or (ioc_collection.domains[0].value if ioc_collection.domains else None)
 
         auth_logs_raw = self.log_tool.forward(
             user=query_user,
@@ -183,7 +180,6 @@ class SentinelInvestigationAgent:
         )
         corr_data = json.loads(corr_raw)
         patterns = corr_data.get("detected_attack_patterns", [])
-        timeline_items = corr_data.get("timeline", [])
 
         for p in patterns:
             correlations.append(CorrelationFinding(
@@ -231,12 +227,8 @@ class SentinelInvestigationAgent:
 
         # ── Step 6: Formulate Analytical Verdict & Recommendation ──
         verdict, action = self._synthesize_verdict(
-            alert=alert,
-            correlations=correlations,
             threat_intel=threat_intel_results,
             patterns=patterns,
-            matched_events=matched_events,
-            host_events=host_events,
         )
 
         steps.append(InvestigationStep(
@@ -250,8 +242,10 @@ class SentinelInvestigationAgent:
             timestamp=datetime.now(UTC),
         ))
 
-        # Load all scenario log events for full audit trail
-        all_logs = self.log_store.query_by_scenario(alert.scenario_id) if alert.scenario_id else []
+        # Retrieve scenario log events for full audit trail
+        all_logs: list[LogEvent] = []
+        if alert.scenario_id:
+            all_logs = self.log_store.query_by_scenario(alert.scenario_id)
 
         completed_at = datetime.now(UTC)
 
@@ -270,38 +264,47 @@ class SentinelInvestigationAgent:
 
     def _synthesize_verdict(
         self,
-        alert: Alert,
-        correlations: list[CorrelationFinding],
         threat_intel: list[ThreatIntelResult],
         patterns: list[dict[str, Any]],
-        matched_events: list[dict[str, Any]],
-        host_events: list[dict[str, Any]],
     ) -> tuple[Verdict, RecommendedAction]:
-        """Evidence-grounded analytical decision engine."""
-        # 1. False positive check (Scenario 06 pattern: routine scheduled task, business hours, legitimate admin script)
-        if "Update-ADGroupPolicy" in alert.description or alert.scenario_id == "scenario_06_false_positive":
-            has_scheduled_task = any("Weekly-AD-Maintenance" in str(e.get("raw_event", "")) or "106" in str(e.get("metadata", {}).get("event_id", "")) for e in host_events + matched_events)
-            if has_scheduled_task or "ExecutionPolicy Bypass" in alert.title:
-                return Verdict.FALSE_POSITIVE, RecommendedAction.IGNORE
+        """Evidence-grounded analytical decision engine.
 
-        # 2. Ambiguous lateral movement (Scenario 07: dual-use admin tool PsExec without C2 or confirmed malware)
-        if alert.scenario_id == "scenario_07_ambiguous_lateral" or ("PsExec" in alert.title and not any(t.reputation == "malicious" for t in threat_intel)):
-            return Verdict.SUSPICIOUS, RecommendedAction.ESCALATE
+        Strictly decoupled from alert metadata/titles/descriptions/scenario_ids.
+        Decisions are synthesized exclusively from correlation patterns and threat intelligence.
+        """
+        pattern_names = {p.get("pattern") for p in patterns}
 
-        # 3. Internal Reconnaissance / Port Scan without exploitation (Scenario 05)
-        if alert.scenario_id == "scenario_05_reconnaissance" or "Port Scan" in alert.title:
-            return Verdict.SUSPICIOUS, RecommendedAction.MONITOR
+        # 1. Confirmed Threat -> TRUE_POSITIVE / CONTAIN
+        # Triggered if at least one IOC has malicious reputation with confidence >= 0.85,
+        # OR if any critical multi-stage attack pattern is confirmed.
+        has_malicious_ti = any(
+            t.reputation == "malicious" and t.confidence >= 0.85
+            for t in threat_intel
+        )
+        critical_patterns = {
+            "brute_force_followed_by_success",
+            "command_and_control_or_exfiltration",
+            "reconnaissance_followed_by_execution",
+        }
+        has_critical_pattern = bool(pattern_names & critical_patterns)
 
-        # 4. Confirmed Threats: Malicious Threat Intel OR Multi-stage Attack Patterns OR C2 Beaconing
-        has_malicious_ti = any(t.reputation == "malicious" and t.confidence >= 0.85 for t in threat_intel)
-        has_critical_pattern = any(p.get("pattern") in ("command_and_control_or_exfiltration", "reconnaissance_followed_by_execution", "brute_force_followed_by_success") for p in patterns)
-        has_ransomware = any("cerber" in str(t.tags).lower() or "ransomware" in alert.title.lower() for t in threat_intel) or "Cerber" in alert.title
-        has_exfil = "Large Outbound" in alert.title or any("exfiltration" in str(t.tags).lower() for t in threat_intel)
-
-        if has_malicious_ti or has_critical_pattern or has_ransomware or has_exfil:
+        if has_malicious_ti or has_critical_pattern:
             return Verdict.TRUE_POSITIVE, RecommendedAction.CONTAIN
 
-        # Default fallback
+        # 2. Ambiguous Lateral Movement -> SUSPICIOUS / ESCALATE
+        if "lateral_movement_dual_use_tool" in pattern_names:
+            return Verdict.SUSPICIOUS, RecommendedAction.ESCALATE
+
+        # 3. Reconnaissance Only -> SUSPICIOUS / MONITOR
+        if "reconnaissance_only" in pattern_names:
+            return Verdict.SUSPICIOUS, RecommendedAction.MONITOR
+
+        # 4. Scheduled Routine Activity Without Malicious Signals -> FALSE_POSITIVE / IGNORE
+        if "scheduled_task_triggered_execution" in pattern_names:
+            return Verdict.FALSE_POSITIVE, RecommendedAction.IGNORE
+
+        # 5. Default Fallback
         if patterns:
             return Verdict.SUSPICIOUS, RecommendedAction.MONITOR
+
         return Verdict.FALSE_POSITIVE, RecommendedAction.IGNORE

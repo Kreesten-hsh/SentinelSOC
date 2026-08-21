@@ -4,12 +4,20 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
+from uuid import uuid4
 
 import pytest
 
 from src.agent.sentinel_agent import SentinelInvestigationAgent
 from src.data.log_store import LogStore
-from src.models.alert import Alert, RecommendedAction, Verdict
+from src.models.alert import (
+    Alert,
+    CorrelationFinding,
+    IOCType,
+    RecommendedAction,
+    ThreatIntelResult,
+    Verdict,
+)
 
 
 @pytest.fixture
@@ -95,3 +103,91 @@ class TestSentinelInvestigationAgent:
             )
             assert len(result.steps) == 6
             assert result.completed_at is not None
+
+    def test_anti_cheat_no_scenario_id(
+        self,
+        agent: SentinelInvestigationAgent,
+        sample_alerts: list[Alert],
+        ground_truth: dict,
+    ) -> None:
+        """Anti-cheat test: verify that stripping or randomizing scenario_id yields identical verdicts."""
+        for alert in sample_alerts:
+            original_scenario_id = alert.scenario_id
+            gt = ground_truth[original_scenario_id]
+
+            # Clone alert and strip scenario_id
+            alert_blind = Alert(
+                id=alert.id,
+                timestamp=alert.timestamp,
+                source=alert.source,
+                title=alert.title,
+                description=alert.description,
+                raw_data=dict(alert.raw_data),
+                status=alert.status,
+                scenario_id="",  # Stripped
+            )
+
+            # Isolate scenario logs in a temporary dedicated LogStore to simulate real SIEM intake
+            scenario_store = LogStore()
+            for event in agent.log_store.query_by_scenario(original_scenario_id):
+                scenario_store.add_event(event)
+
+            blind_agent = SentinelInvestigationAgent(
+                log_store=scenario_store,
+                threat_intel_path=agent.ti_tool.ti_path,
+                use_llm=False,
+            )
+
+            result_blind = blind_agent.investigate(alert_blind)
+
+            assert result_blind.verdict is not None
+            assert result_blind.recommended_action is not None
+            assert result_blind.verdict.value == gt["expected_verdict"], (
+                f"Anti-cheat failure for {alert.id}: got {result_blind.verdict.value}, expected {gt['expected_verdict']}"
+            )
+            assert result_blind.recommended_action.value == gt["recommended_action"], (
+                f"Anti-cheat action failure for {alert.id}: got {result_blind.recommended_action.value}, expected {gt['recommended_action']}"
+            )
+
+    def test_synthesize_verdict_decision_matrix(self, agent: SentinelInvestigationAgent) -> None:
+        """Direct unit test of _synthesize_verdict across all priority branches."""
+        # 1. Confirmed Threat via Threat Intel
+        ti_mal = [ThreatIntelResult(ioc_value="1.2.3.4", ioc_type=IOCType.IPV4, reputation="malicious", confidence=0.95)]
+        v, a = agent._synthesize_verdict(threat_intel=ti_mal, patterns=[])
+        assert v == Verdict.TRUE_POSITIVE
+        assert a == RecommendedAction.CONTAIN
+
+        # 1b. Confirmed Threat via Critical Pattern
+        p_c2 = [{"pattern": "command_and_control_or_exfiltration", "severity": "critical"}]
+        v, a = agent._synthesize_verdict(threat_intel=[], patterns=p_c2)
+        assert v == Verdict.TRUE_POSITIVE
+        assert a == RecommendedAction.CONTAIN
+
+        # 2. Ambiguous Lateral Movement
+        p_lat = [{"pattern": "lateral_movement_dual_use_tool", "severity": "medium"}]
+        v, a = agent._synthesize_verdict(threat_intel=[], patterns=p_lat)
+        assert v == Verdict.SUSPICIOUS
+        assert a == RecommendedAction.ESCALATE
+
+        # 3. Reconnaissance Only
+        p_recon = [{"pattern": "reconnaissance_only", "severity": "medium"}]
+        v, a = agent._synthesize_verdict(threat_intel=[], patterns=p_recon)
+        assert v == Verdict.SUSPICIOUS
+        assert a == RecommendedAction.MONITOR
+
+        # 4. Scheduled Task Execution (False Positive)
+        p_sched = [{"pattern": "scheduled_task_triggered_execution", "severity": "low"}]
+        v, a = agent._synthesize_verdict(threat_intel=[], patterns=p_sched)
+        assert v == Verdict.FALSE_POSITIVE
+        assert a == RecommendedAction.IGNORE
+
+        # 5. Unknown pattern fallback
+        p_unknown = [{"pattern": "custom_anomalous_sequence", "severity": "low"}]
+        v, a = agent._synthesize_verdict(threat_intel=[], patterns=p_unknown)
+        assert v == Verdict.SUSPICIOUS
+        assert a == RecommendedAction.MONITOR
+
+        # 6. Default clean
+        v, a = agent._synthesize_verdict(threat_intel=[], patterns=[])
+        assert v == Verdict.FALSE_POSITIVE
+        assert a == RecommendedAction.IGNORE

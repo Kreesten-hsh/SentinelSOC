@@ -14,7 +14,7 @@
         "context": "alert_ALT-2024-002"
       }
     ],
-    "extraction_timestamp": "2026-08-20T21:26:26.674150Z"
+    "extraction_timestamp": "2026-08-21T08:40:54.208255Z"
   },
   "steps": [
     {
@@ -25,7 +25,7 @@
       "query": "content={\"src_ip\": \"40.80.148.42\", \"dest_ip\": \"192.168.250.50\", \"dest_port\": 22, \"event_...",
       "result_summary": "Extracted 2 IOCs: 2 IPs, 0 hashes, 0 users, 0 domains.",
       "events_found": 2,
-      "timestamp": "2026-08-20T21:26:26.674175Z"
+      "timestamp": "2026-08-21T08:40:54.208275Z"
     },
     {
       "step_number": 2,
@@ -35,7 +35,7 @@
       "query": "src_ip=40.80.148.42, scenario_id=scenario_02_brute_force",
       "result_summary": "Identified 31 matching network/IDS telemetry events.",
       "events_found": 31,
-      "timestamp": "2026-08-20T21:26:26.676570Z"
+      "timestamp": "2026-08-21T08:40:54.210813Z"
     },
     {
       "step_number": 3,
@@ -45,7 +45,7 @@
       "query": "user=None, host=None, scenario_id=scenario_02_brute_force",
       "result_summary": "Retrieved 33 authentication/endpoint events.",
       "events_found": 33,
-      "timestamp": "2026-08-20T21:26:26.679739Z"
+      "timestamp": "2026-08-21T08:40:54.212816Z"
     },
     {
       "step_number": 4,
@@ -55,7 +55,7 @@
       "query": "scenario_id=scenario_02_brute_force, target_ip=40.80.148.42",
       "result_summary": "Correlated 33 events. Detected 1 attack pattern(s): ['brute_force_followed_by_success'].",
       "events_found": 1,
-      "timestamp": "2026-08-20T21:26:26.681092Z"
+      "timestamp": "2026-08-21T08:40:54.214509Z"
     },
     {
       "step_number": 5,
@@ -65,7 +65,7 @@
       "query": "IOCs: ['40.80.148.42', '192.168.250.50']",
       "result_summary": "Evaluated 2 indicators. Malicious tags found: [['apt', 'brute-force', 'po1s0n1vy']].",
       "events_found": 1,
-      "timestamp": "2026-08-20T21:26:26.681601Z"
+      "timestamp": "2026-08-21T08:40:54.214990Z"
     },
     {
       "step_number": 6,
@@ -75,7 +75,7 @@
       "query": "Analytical evaluation",
       "result_summary": "Verdict: TRUE_POSITIVE | Recommended Action: CONTAIN",
       "events_found": 1,
-      "timestamp": "2026-08-20T21:26:26.681677Z"
+      "timestamp": "2026-08-21T08:40:54.215056Z"
     }
   ],
   "log_events": [
@@ -729,7 +729,7 @@
       "description": "15 failed authentications followed by successful login for user 'admin' from 40.80.148.42",
       "events": [],
       "pattern": "brute_force_followed_by_success",
-      "confidence": 0.7
+      "confidence": 0.9
     }
   ],
   "threat_intel": [
@@ -783,6 +783,6 @@
   "severity_score": null,
   "verdict": "true_positive",
   "recommended_action": "contain",
-  "started_at": "2026-08-20T21:26:26.672983Z",
-  "completed_at": "2026-08-20T21:26:26.681745Z"
+  "started_at": "2026-08-21T08:40:54.207706Z",
+  "completed_at": "2026-08-21T08:40:54.215134Z"
 }

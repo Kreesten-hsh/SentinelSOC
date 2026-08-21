@@ -11,6 +11,7 @@ Orchestrates multi-step investigation of raw security alerts using smolagents to
 from __future__ import annotations
 
 import json
+import logging
 import os
 from datetime import UTC, datetime
 from pathlib import Path
@@ -39,6 +40,8 @@ from src.tools.ioc_extractor import IOCExtractorTool
 from src.tools.log_query import LogQueryTool
 from src.tools.threat_intel import ThreatIntelTool
 
+logger = logging.getLogger(__name__)
+
 
 class SentinelInvestigationAgent:
     """Autonomous SOC tier-2/3 investigation agent."""
@@ -46,7 +49,7 @@ class SentinelInvestigationAgent:
     def __init__(
         self,
         log_store: LogStore | None = None,
-        threat_intel_path: Path | str | None = None,
+        threat_intel_path: Path | None = None,
         model_name: str | None = None,
         use_llm: bool = False,
     ) -> None:
@@ -74,10 +77,12 @@ class SentinelInvestigationAgent:
             self._llm_agent = CodeAgent(
                 tools=self.tools,
                 model=model,
-                system_prompt=INVESTIGATION_SYSTEM_PROMPT,
+                instructions=INVESTIGATION_SYSTEM_PROMPT,
                 max_steps=8,
             )
+            logger.info("smolagents CodeAgent initialized with model '%s'", self.model_name)
         except Exception as err:
+            logger.error("LLM CodeAgent initialization failed: %s", err, exc_info=True)
             self._llm_agent = None
 
     def investigate_llm(self, alert: Alert) -> str:

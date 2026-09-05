@@ -1,6 +1,6 @@
 # SentinelSOC
 
-**Système d'Investigation & Triage d'Alertes SOC — Moteur Causal Déterministe & Support Agentic LLM**
+**Tier-2/3 SOC Alert Triage & Incident Investigation Engine — Deterministic Causal Pipeline & Optional Agentic LLM Support**
 
 [![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
 [![FastAPI](https://img.shields.io/badge/backend-FastAPI-009688.svg)](https://fastapi.tiangolo.com/)
@@ -10,47 +10,47 @@
 
 ---
 
-## 1. Présentation & Positionnement
+## 1. Overview & Architecture Positioning
 
-SentinelSOC est une plateforme d'investigation et de triage de niveau **SOC Tier-2/3**. Il reçoit une alerte brute de sécurité (SIEM/IDS/EDR), extrait automatiquement les indicateurs de compromission (IOCs), interroge la télémétrie multi-sources (pare-feu Fortinet, authentification Windows Event Log 4624/4625, processus endpoint Sysmon EID 1, IDS Suricata), reconstitue la chaîne causale d'attaque, enrichit via Threat Intelligence, calcule un score de sévérité hybride (Règles explicites + ML RandomForest) et génère un rapport d'investigation structuré avec actions de remédiation immédiates.
+SentinelSOC is an incident investigation and alert triage engine designed for **SOC Tier-2/3** operations. When provided with raw security telemetry (SIEM/IDS/EDR), SentinelSOC extracts indicators of compromise (IOCs), queries heterogeneous log sources (Fortinet firewalls, Windows Event Logs 4624/4625, Sysmon EID 1 endpoint execution traces, and Suricata IDS alerts), reconstructs the causal attack sequence, enriches data via Threat Intelligence, computes a hybrid severity score (Deterministic Rules + Scikit-Learn RandomForest), and exports a structured investigation report with immediate containment recommendations.
 
-### Architecture Dual-Engine & Threat Intel Hybride
+### Dual-Engine Execution & Hybrid Threat Intel
 
-1. **Pipeline Causal Déterministe (Moteur de Production par Défaut)** :
-   - Exécution causale stricte en **7 étapes ordonnées** s'appuyant sur les contrats d'outils `smolagents` (`IOCExtractorTool`, `LogQueryTool`, `EventCorrelatorTool`, `ThreatIntelTool`, `SeverityScorer`).
-   - **Avantages** : Zéro hallucination sur les IP/hashes, zéro latence d'inférence LLM, auditabilité mathématique complète et reproductibilité à 100% sans nécessiter de GPU ou de clé API.
-2. **Mode Agentic LLM (`use_llm=True` / `investigate_llm()`) (Expérimental / Démonstrateur)** :
-   - Orchestrateur `smolagents.CodeAgent` compatible avec tout modèle local Ollama (`qwen2.5:0.5b` pour inférence CPU légère, ou `mistral:7b`) ou API distante.
-   - Initialisation, binding des outils et boucle d'exécution de code Python testés unitairement (`tests/test_agent_llm.py`).
-3. **Stratégie Threat Intelligence Hybride** :
-   - **Mode Local Déterministe (Par défaut)** : Requêtage instantané et reproductible hors-ligne sur `data/threat_intel/known_iocs.json`.
-   - **Enrichissement Live AbuseIPDB (Optionnel)** : Fallback transparent vers l'API REST AbuseIPDB v2 lorsque la variable `ABUSEIPDB_API_KEY` est renseignée. Testé unitairement avec mock dans `tests/test_tools.py`.
+1. **Deterministic Causal Pipeline (Default Production Engine)**:
+   - Executes an ordered **7-step deterministic analysis** built upon modular tool interfaces (`IOCExtractorTool`, `LogQueryTool`, `EventCorrelatorTool`, `ThreatIntelTool`, `SeverityScorer`).
+   - **Properties**: Zero hallucination on IP addresses and hashes, sub-second execution latency, mathematical reproducibility, and fully auditable execution paths without requiring GPU resources or paid external APIs.
+2. **Agentic LLM Mode (`use_llm=True` / `investigate_llm()`) (Demonstrator)**:
+   - Orchestrated via `smolagents.CodeAgent`, supporting lightweight local models via Ollama (`qwen2.5:0.5b` for CPU inference, `mistral:7b`) or remote APIs.
+   - Initialized with strict tool bindings and Python code execution loops verified in automated unit tests (`tests/test_agent_llm.py`).
+3. **Hybrid Threat Intelligence Architecture**:
+   - **Local Deterministic Mode (Default)**: Instant offline queries against `data/threat_intel/known_iocs.json`.
+   - **Live AbuseIPDB Enrichment (Optional)**: Transparent fallback to AbuseIPDB v2 REST API when `ABUSEIPDB_API_KEY` is configured.
 
 ---
 
-## 2. Architecture Globale
+## 2. System Architecture
 
 ```mermaid
 graph TB
-    subgraph "Télémétrie SIEM & Datasets"
-        A["Splunk BOTS v1 Attacks<br/>(131 logs JSONL normalisés)"] --> B["LogStore Multi-Sources<br/>(Firewall, Auth, Sysmon, IDS)"]
-        C["Threat Intel Base<br/>(Local DB + AbuseIPDB Live API)"]
-        D["Modèle RandomForest<br/>(Auto-bootstrapé au setup)"]
+    subgraph "SIEM Telemetry & Datasets"
+        A["Splunk BOTS v1 Telemetry<br/>(131 Normalized JSONL Logs)"] --> B["Multi-Source LogStore<br/>(Firewall, Auth, Sysmon, IDS)"]
+        C["Threat Intel Store<br/>(Local IOC DB + AbuseIPDB Live API)"]
+        D["RandomForest Classifier<br/>(Auto-bootstrapped on init)"]
     end
 
-    subgraph "Pipeline d'Investigation Causal (7 Étapes)"
-        E["Alerte Brute SIEM"] --> S1["1. Extracteur d'IOCs<br/>(Regex + Payload Parsing)"]
-        S1 --> S2["2. Télémétrie Réseau<br/>(Firewall Fortinet & IDS Suricata)"]
-        S2 --> S3["3. Télémétrie Hôte & Auth<br/>(WinEventLog 4624/4625 & Sysmon EID 1)"]
-        S3 --> S4["4. Corrélateur Causal<br/>(Patterns d'attaque cross-sources)"]
-        S4 --> S5["5. Threat Intelligence<br/>(Réputation, Confiance, Tags)"]
-        S5 --> S6["6. Scoring de Sévérité Hybride<br/>(40% Règles Explicites + 60% ML)"]
-        S6 --> S7["7. Synthèse du Verdict & Actions<br/>(TRUE/FALSE_POSITIVE, SUSPICIOUS)"]
+    subgraph "Deterministic Causal Pipeline (7 Stages)"
+        E["Raw SIEM Alert"] --> S1["1. IOC Extraction<br/>(Regex + Payload Parsing)"]
+        S1 --> S2["2. Network Telemetry<br/>(Fortinet Firewall & Suricata IDS)"]
+        S2 --> S3["3. Host & Auth Telemetry<br/>(WinEventLog 4624/4625 & Sysmon EID 1)"]
+        S3 --> S4["4. Causal Correlation<br/>(Cross-source attack patterns)"]
+        S4 --> S5["5. Threat Intelligence<br/>(Reputation score, confidence, tags)"]
+        S5 --> S6["6. Hybrid Severity Scoring<br/>(40% Explicit Rules + 60% ML Classifier)"]
+        S6 --> S7["7. Verdict & Triage Synthesis<br/>(TRUE/FALSE_POSITIVE, SUSPICIOUS)"]
     end
 
-    subgraph "Couche Applicative"
+    subgraph "Application Layer"
         S7 --> F["FastAPI REST Backend<br/>(SQLite + aiosqlite + SQLAlchemy 2.0)"]
-        F --> G["Tableau de Bord SOC React 19<br/>(Dark Mode, Traces Interactives, Rapports Markdown)"]
+        F --> G["React 19 SOC Dashboard<br/>(Dark Mode, Real-Time Traces, Markdown Reports)"]
     end
 
     B --> S2
@@ -62,119 +62,119 @@ graph TB
 
 ---
 
-## 3. Matrice des 8 Scénarios BOTS v1 (Validation 100%)
+## 3. Splunk BOTS v1 Evaluation Matrix (100% Match)
 
-SentinelSOC est évalué contre une **vérité terrain isolée** (`data/scenarios/ground_truth.json`) non accessible aux outils d'investigation :
+SentinelSOC is rigorously validated against an **isolated ground truth dataset** (`data/scenarios/ground_truth.json`) inaccessible to internal investigation tools:
 
-| ID Alerte | Scénario d'Attaque (Splunk BOTS v1) | Verdict Ground Truth | Verdict Système | Sévérité Calculée | Action Recommandée | Statut |
+| Alert ID | Attack Scenario (Splunk BOTS v1) | Ground Truth Verdict | Engine Verdict | Computed Severity | Recommended Action | Verification |
 |---|---|---|---|---|---|---|
 | `ALT-2024-001` | **Web Defacement** (Acunetix scan → Webshell → Defacement) | `TRUE_POSITIVE` | `TRUE_POSITIVE` | `CRITICAL` (72.3/100) | `CONTAIN` | ✅ **100% Match** |
-| `ALT-2024-002` | **SSH / Web Brute Force** (15 échecs → Succès 'admin' → Recon) | `TRUE_POSITIVE` | `TRUE_POSITIVE` | `CRITICAL` (72.3/100) | `CONTAIN` | ✅ **100% Match** |
-| `ALT-2024-003` | **Cerber Ransomware** (USB exec → Shadow copy deletion → C2 185.141.27.88) | `TRUE_POSITIVE` | `TRUE_POSITIVE` | `CRITICAL` (76.1/100) | `CONTAIN` | ✅ **100% Match** |
-| `ALT-2024-004` | **Data Exfiltration** (Accès partages sensibles → 7z archive → HTTPS drop 48.5MB) | `TRUE_POSITIVE` | `TRUE_POSITIVE` | `CRITICAL` (76.1/100) | `CONTAIN` | ✅ **100% Match** |
-| `ALT-2024-005` | **Port Scanning Interne** (Scan SYN interne 10.0.0.88 sans exécution endpoint) | `SUSPICIOUS` | `SUSPICIOUS` | `MEDIUM` (34.6/100) | `MONITOR` | ✅ **100% Match** |
-| `ALT-2024-006` | **Faux Positif PowerShell** (Tâche planifiée Weekly-AD-Maintenance par admin) | `FALSE_POSITIVE` | `FALSE_POSITIVE` | `LOW` (7.2/100) | `IGNORE` | ✅ **100% Match** |
-| `ALT-2024-007` | **Mouvement Latéral Ambigu** (PsExec + net user par compte standard sur 2 serveurs) | `SUSPICIOUS` | `SUSPICIOUS` | `MEDIUM` (39.8/100) | `ESCALATE` | ✅ **100% Match** |
-| `ALT-2024-008` | **Credential Stuffing OWA** (12 comptes testés depuis IP unique → 2 accès OWA) | `TRUE_POSITIVE` | `TRUE_POSITIVE` | `CRITICAL` (72.3/100) | `CONTAIN` | ✅ **100% Match** |
+| `ALT-2024-002` | **SSH / Web Brute Force** (15 failures → 'admin' success → Recon) | `TRUE_POSITIVE` | `TRUE_POSITIVE` | `CRITICAL` (72.3/100) | `CONTAIN` | ✅ **100% Match** |
+| `ALT-2024-003` | **Cerber Ransomware** (USB execution → Shadow copy deletion → C2 beacon) | `TRUE_POSITIVE` | `TRUE_POSITIVE` | `CRITICAL` (76.1/100) | `CONTAIN` | ✅ **100% Match** |
+| `ALT-2024-004` | **Data Exfiltration** (Share enumeration → 7z archive → 48.5MB HTTPS exfil) | `TRUE_POSITIVE` | `TRUE_POSITIVE` | `CRITICAL` (76.1/100) | `CONTAIN` | ✅ **100% Match** |
+| `ALT-2024-005` | **Internal Port Scan** (10.0.0.88 SYN sweep without endpoint execution) | `SUSPICIOUS` | `SUSPICIOUS` | `MEDIUM` (34.6/100) | `MONITOR` | ✅ **100% Match** |
+| `ALT-2024-006` | **PowerShell False Positive** (Weekly-AD-Maintenance scheduled task by admin) | `FALSE_POSITIVE` | `FALSE_POSITIVE` | `LOW` (7.2/100) | `IGNORE` | ✅ **100% Match** |
+| `ALT-2024-007` | **Ambiguous Lateral Movement** (PsExec + net user execution across 2 servers) | `SUSPICIOUS` | `SUSPICIOUS` | `MEDIUM` (39.8/100) | `ESCALATE` | ✅ **100% Match** |
+| `ALT-2024-008` | **OWA Credential Stuffing** (12 accounts probed from single IP → 2 valid sessions) | `TRUE_POSITIVE` | `TRUE_POSITIVE` | `CRITICAL` (72.3/100) | `CONTAIN` | ✅ **100% Match** |
 
 ---
 
-## 4. Rigueur Méthodologique & Garanties Anti-Biais
+## 4. Engineering Guarantees & Anti-Bias Controls
 
-1. **Isolation de la Vérité Terrain** ([`DECISIONS.md #D007`](file:///home/hasashi/Bureau/SentinelSOC/DECISIONS.md)) : `ground_truth.json` est strictement réservé à l'évaluation post-hoc et n'est jamais chargé par le LogStore.
-2. **Décision Purement Causale** ([`DECISIONS.md #D008`](file:///home/hasashi/Bureau/SentinelSOC/DECISIONS.md)) : L'agent ne lit aucun champ `scenario_id`, titre ou description pour déduire son verdict.
-3. **Test Anti-Triche** : Le test unitaire `test_anti_cheat_no_scenario_id` vérifie qu'une alerte sans métadonnée produit un verdict identique.
-4. **Validation des IP Publiques** : `is_external_ip` filtre les communications internes (RFC1918, loopback, broadcast) pour éviter les fausses détections d'exfiltration.
-5. **Gestion du Modèle ML & Auto-Bootstrap** ([`DECISIONS.md #D009`](file:///home/hasashi/Bureau/SentinelSOC/DECISIONS.md)) : Le modèle `severity_model.joblib` est auto-généré au premier lancement s'il est absent.
+1. **Ground Truth Isolation** (`DECISIONS.md #D007`): `ground_truth.json` is strictly reserved for post-hoc evaluation and is never queried by the runtime `LogStore`.
+2. **Causal Decision Independence** (`DECISIONS.md #D008`): The engine does not inspect `scenario_id`, alert titles, or descriptions to determine verdicts. Decisions rely solely on observed evidence.
+3. **Anti-Cheat Testing**: The unit test `test_anti_cheat_no_scenario_id` verifies that stripping all metadata from an alert yields identical verdicts and severity scores.
+4. **Network Scoping**: `is_external_ip` enforces RFC1918, loopback, and broadcast boundaries to eliminate false exfiltration flags on internal subnet traffic.
+5. **Model Lifecycle & Auto-Bootstrap** (`DECISIONS.md #D009`): If `severity_model.joblib` is absent during first boot, SentinelSOC automatically trains and serializes the baseline classifier.
 
 ---
 
-## 5. Installation & Démarrage Rapide
+## 5. Quickstart & Local Setup
 
-### Prérequis
+### Prerequisites
 - Python 3.11+
 - Node.js 20+ & npm 10+
 
-### Démarrage en 3 commandes
+### Step-by-Step Installation
 
 ```bash
-# 1. Cloner le dépôt
+# 1. Clone repository
 git clone https://github.com/Kreesten-hsh/SentinelSOC.git
 cd SentinelSOC
 
-# 2. Installer les dépendances backend (avec wheel hatchling) & frontend
+# 2. Install backend package (with development tools) and frontend dependencies
 pip install -e ".[dev]"
 cd frontend && npm install && cd ..
 
-# 3. Lancer l'environnement complet (Auto-bootstrap ML + FastAPI + Dashboard React)
+# 3. Launch full stack (ML Auto-bootstrap + FastAPI + React Dashboard)
 ./start.sh
 ```
 
-- **Dashboard SOC** : [http://localhost:5173](http://localhost:5173)
-- **API Swagger** : [http://localhost:8000/docs](http://localhost:8000/docs)
-- **État Santé / Modèle ML** : [http://localhost:8000/api/health](http://localhost:8000/api/health)
+- **SOC Dashboard**: [http://localhost:5173](http://localhost:5173)
+- **API Swagger Documentation**: [http://localhost:8000/docs](http://localhost:8000/docs)
+- **Engine Health Endpoint**: [http://localhost:8000/api/health](http://localhost:8000/api/health)
 
 ---
 
-## 6. Scripts de Vérification
+## 6. Automated Verification Suites
 
-- **Vérification In-Place Rapide** :
+- **In-Place Test Run**:
   ```bash
   ./scripts/verify_local.sh
   ```
-- **Vérification Réelle sur Clone Vierge Isolé** (crée un clone temporaire via `mktemp -d`, installe et exécute 76 tests) :
+- **Isolated Clean-Clone Test** (allocates an isolated temporary workspace via `mktemp -d`, clones the repository, installs dependencies, and runs 76 integration tests):
   ```bash
   ./scripts/verify_clean.sh
   ```
 
 ---
 
-## 7. Structure du Codebase
+## 7. Codebase Architecture
 
 ```
 SentinelSOC/
-├── backend/                  # API REST FastAPI & Persistance
-│   ├── database.py           # Modèles SQLite / SQLAlchemy 2.0 async
-│   ├── main.py               # Application FastAPI & Lifespan DB
-│   ├── routes/alerts.py      # Endpoints triage, investigation & rapports
-│   ├── schemas.py            # Schémas Pydantic pour l'API REST
-│   └── services.py           # Orchestration agent & synchronisation DB
+├── backend/                  # FastAPI REST API & Data Persistence Layer
+│   ├── database.py           # SQLite / SQLAlchemy 2.0 Async Session Engine
+│   ├── main.py               # FastAPI App Lifecycle & CORS Setup
+│   ├── routes/alerts.py      # Triage, Investigation & Report Generation Endpoints
+│   ├── schemas.py            # Pydantic Request/Response Models
+│   └── services.py           # Investigation Orchestration & DB Sync
 ├── data/
-│   ├── alerts/               # Alertes brutes (sample_alerts.json)
-│   ├── investigations/       # Traces JSON générées
-│   ├── reports/              # Rapports Markdown & JSON exportés
-│   ├── scenarios/            # 8 scénarios de logs normalisés (JSONL)
-│   └── threat_intel/         # Base IOCs locale (known_iocs.json)
-├── docs/scenarios/           # Fiches d'investigation complètes par scénario
-├── frontend/                 # Application React 19 + Vite (Dark Mode SOC)
+│   ├── alerts/               # Ingestion Alert Datasets (sample_alerts.json)
+│   ├── investigations/       # Serialized JSON Investigation Traces
+│   ├── reports/              # Exported Markdown & JSON Reports
+│   ├── scenarios/            # 8 Normalized Attack Telemetry Logs (JSONL)
+│   └── threat_intel/         # Local IOC Knowledge Base (known_iocs.json)
+├── docs/scenarios/           # In-depth Incident Walkthroughs per Scenario
+├── frontend/                 # React 19 + Vite Application (SOC Dark UI)
 │   ├── src/
-│   │   ├── components/       # Header, Queue, InvestigationTrace, ReportModal
-│   │   ├── index.css         # Design System Cyber SOC Vanilla CSS
-│   │   ├── api.ts            # Client API REST
-│   │   └── types.ts          # Définitions TypeScript
-├── models/                   # Modèle ML sérialisé (severity_model.joblib)
+│   │   ├── components/       # Header, AlertQueue, TraceTimeline, ReportViewer
+│   │   ├── index.css         # Cyber SOC Design System (Vanilla CSS Tokens)
+│   │   ├── api.ts            # Typed HTTP Client
+│   │   └── types.ts          # Frontend TypeScript Definitions
+├── models/                   # Serialized ML Artifacts (severity_model.joblib)
 ├── scripts/
-│   ├── generate_scenarios.py # Générateur haute fidélité des logs BOTS v1
-│   ├── generate_reports.py   # Générateur de rapports Markdown
-│   ├── train_severity_model.py # Entraînement RandomForest & validation croisée
-│   ├── verify_local.sh       # Vérification locale rapide
-│   ├── verify_clean.sh       # Vérification isolée sur clone temporaire
-│   └── run_investigations.py # Exécution batch des 8 alertes
+│   ├── generate_scenarios.py # Telemetry Generator for BOTS v1 Events
+│   ├── generate_reports.py   # Batch Markdown Report Generator
+│   ├── train_severity_model.py # RandomForest Classifier Training & Validation
+│   ├── verify_local.sh       # Local Verification Runner
+│   ├── verify_clean.sh       # Clean Clone Verification Runner
+│   └── run_investigations.py # Batch Investigation Engine for Scenarios
 ├── src/
-│   ├── agent/                # Agent smolagents & Prompts SOC
-│   ├── data/log_store.py     # Moteur de requêtage de télémétrie
-│   ├── models/alert.py       # Schémas typés Pydantic
-│   ├── reporting/            # Moteur de génération de rapports Jinja2
-│   ├── scoring/              # Moteur de scoring hybride (Règles + ML)
-│   └── tools/                # Outils d'investigation (IOC, Query, Correlator, TI)
-├── tests/                    # 76 tests unitaires et d'intégration
-├── DECISIONS.md              # Registre des décisions d'architecture (D001-D009)
-├── pyproject.toml            # Dépendances et configuration package
-└── start.sh                  # Script de démarrage tout-en-un
+│   ├── agent/                # smolagents Orchestration & Prompt Definitions
+│   ├── data/log_store.py     # High-Performance Multi-Source Telemetry Store
+│   ├── models/alert.py       # Domain Models & Telemetry Schemas
+│   ├── reporting/            # Jinja2 Report Generation Engine
+│   ├── scoring/              # Hybrid Severity Engine (Rules + ML)
+│   └── tools/                # Investigation Tools (IOCs, Query, Correlation, TI)
+├── tests/                    # 76 Unit & Integration Tests (100% Pass Rate)
+├── DECISIONS.md              # Architectural Decision Records (D001-D009)
+├── pyproject.toml            # Package Metadata & Dependency Declarations
+└── start.sh                  # All-in-one Initialization Script
 ```
 
 ---
 
-## 8. Licence
+## 8. License
 
-Projet distribué sous licence MIT.
+Distributed under the MIT License. See `LICENSE` for details.
